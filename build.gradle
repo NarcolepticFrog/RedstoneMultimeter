@@ -1,0 +1,60 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        maven {
+            name = "sonatype"
+            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+        maven {
+            name = 'sponge'
+            url = 'http://repo.spongepowered.org/maven'
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:' + project.forgeGradleVersion
+        classpath 'org.spongepowered:mixingradle:0.5-SNAPSHOT'
+    }
+}
+
+apply plugin: 'net.minecraftforge.gradle.liteloader'
+apply plugin: 'org.spongepowered.mixin'
+
+group = "narcolepticfrog.rsmm" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+archivesBaseName = "redstonemultimeter"
+
+minecraft {
+    // these values are defined in the gradle.properties file, so that this file does not need to be altered
+    version = project.mcVersion
+    mappings = project.mcMappings
+    runDir = "run"
+}
+
+sourceSets {
+    main {
+        // Refmap declaration must match the refmap name specified in the json config
+    }
+}
+
+mixin {
+    // liteloader does not do runtime deobfuscation, so in production we use "notch names", mixin needs to know this
+    defaultObfuscationEnv notch
+}
+
+litemod {
+    json {
+        author = "NarcolepticFrog"
+        name = "redstonemultimeter"
+        mcversion = project.targetVersion
+        description = "A tool for debugging redstone builds."
+    }
+}
+
+jar {
+    // The litemod task above generates the litemod.json dynamically, you can replace it with a resource if you want more control
+    from litemod.outputs
+}
