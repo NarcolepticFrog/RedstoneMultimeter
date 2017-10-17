@@ -1,5 +1,6 @@
 package narcolepticfrog.rsmm;
 
+import java.awt.*;
 import java.util.Random;
 
 public class RandomColors {
@@ -10,10 +11,11 @@ public class RandomColors {
      * Generates a random color, excluding colors that are too dark.
      */
     public static int randomColor() {
+        Color c = Color.getHSBColor(rand.nextFloat(), rand.nextFloat()*0.5F + 0.5F, rand.nextFloat()*0.5F + 0.5F);
         int color = 0xFF000000;
-        color |= (rand.nextInt(150) + 106);
-        color |= (rand.nextInt(150) + 106) << 8;
-        color |= (rand.nextInt(150) + 106) << 16;
+        color |= c.getBlue();
+        color |= c.getGreen() << 8;
+        color |= c.getRed() << 16;
         return color;
     }
 
