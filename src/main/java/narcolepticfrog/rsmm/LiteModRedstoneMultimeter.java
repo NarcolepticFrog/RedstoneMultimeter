@@ -3,7 +3,6 @@ package narcolepticfrog.rsmm;
 import com.mumfrey.liteloader.*;
 import com.mumfrey.liteloader.core.LiteLoader;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.command.ServerCommandManager;
 import net.minecraft.server.MinecraftServer;
@@ -17,19 +16,20 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
 
     private static KeyBinding toggleMeterKey = new KeyBinding("Toggle Meter", Keyboard.KEY_M, "Redstone Multimeter");
     private static KeyBinding pauseMetersKey = new KeyBinding("Pause Meters", Keyboard.KEY_N, "Redstone Multimeter");
+    private static KeyBinding stepForwardKey = new KeyBinding("Step Forward", Keyboard.KEY_PERIOD,
+            "Redstone Multimeter");
+    private static KeyBinding stepBackwardKey = new KeyBinding("Step Backward", Keyboard.KEY_COMMA,
+            "Redstone Multimeter");
 
     private MeterManager meterManager = new MeterManager();
-    private int meterDuration = 60;
+    private MeterRenderer renderer = new MeterRenderer(60);
     private boolean metersPaused = false;
 
     public LiteModRedstoneMultimeter() {
     }
 
-    public void setDuration(int duration) {
-        this.meterDuration = duration;
-        for (Meter m : meterManager.getMeters()) {
-            m.setDuration(duration);
-        }
+    public void setWindowLength(int length) {
+        renderer.setWindowLength(length);
     }
 
     public void renameMeter(int ix, String name) {
@@ -55,21 +55,35 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
         if (toggleMeterKey.isPressed()) {
             RayTraceResult r = minecraft.objectMouseOver;
             if (r.typeOfHit == RayTraceResult.Type.BLOCK) {
-                meterManager.toggleMeter(r.getBlockPos(), minecraft.player.dimension, meterDuration);
+                meterManager.toggleMeter(r.getBlockPos(), minecraft.player.dimension, 1000);
             }
         }
         if (pauseMetersKey.isPressed()) {
             metersPaused = !metersPaused;
+        }
+
+        if (metersPaused) {
+            if (stepForwardKey.isPressed()) {
+                renderer.setWindowStartTick(renderer.getWindowStartTick() + 10);
+            }
+            if (stepBackwardKey.isPressed()) {
+                renderer.setWindowStartTick(renderer.getWindowStartTick() - 10);
+            }
         }
     }
 
     @Override
     public void onTick(MinecraftServer server) {
         if (!metersPaused) {
-            for (Meter m : meterManager.getMeters()) {
-                for (int dim = 0; dim < server.worlds.length; dim++) {
-                    m.update(server.worlds[dim], dim);
-                }
+            int windowStartTick = ((server.getTickCounter() + renderer.getWindowStartTick())/2 + 1);
+            if (windowStartTick > server.getTickCounter()) {
+                windowStartTick = server.getTickCounter();
+            }
+            renderer.setWindowStartTick(windowStartTick);
+        }
+        for (Meter m : meterManager.getMeters()) {
+            for (int dim = 0; dim < server.worlds.length; dim++) {
+                m.update(server.getTickCounter(), server.worlds[dim], dim);
             }
         }
     }
@@ -77,18 +91,20 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
 
     @Override
     public void onPostRenderHUD(int screenWidth, int screenHeight) {
-        MeterRendering.renderMeterTraces(meterManager.getMeters(), metersPaused);
+        renderer.renderMeterTraces(meterManager.getMeters(), metersPaused);
     }
 
     @Override
     public void onPostRender(float partialTicks) {
-        MeterRendering.renderMeterHighlights(meterManager.getMeters(), partialTicks);
+        renderer.renderMeterHighlights(meterManager.getMeters(), partialTicks);
     }
 
     @Override
     public void init(File configPath) {
         LiteLoader.getInput().registerKeyBinding(toggleMeterKey);
         LiteLoader.getInput().registerKeyBinding(pauseMetersKey);
+        LiteLoader.getInput().registerKeyBinding(stepBackwardKey);
+        LiteLoader.getInput().registerKeyBinding(stepForwardKey);
     }
 
     @Override

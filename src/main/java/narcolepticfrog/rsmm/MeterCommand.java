@@ -5,8 +5,6 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.server.MinecraftServer;
 
-import java.util.Arrays;
-
 public class MeterCommand extends CommandBase {
     LiteModRedstoneMultimeter modInstance;
 
@@ -45,7 +43,7 @@ public class MeterCommand extends CommandBase {
         } else if (args[0].equals("duration")) {
             try {
                 int duration = Integer.parseInt(args[1]);
-                modInstance.setDuration(duration);
+                modInstance.setWindowLength(duration);
             } catch (Exception e) {
                 throw new CommandException("duration must be an integer");
             }

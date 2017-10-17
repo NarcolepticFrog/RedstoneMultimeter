@@ -6,38 +6,86 @@ import net.minecraft.world.World;
 
 public class Meter {
 
+    public class PowerInterval {
+
+        private int startTick;
+        private int endTick;
+        private boolean powered;
+
+        public PowerInterval(int startTick, int endTick, boolean isPowered) {
+            setStartTick(startTick);
+            setEndTick(endTick);
+            setPowered(isPowered);
+        }
+
+        public PowerInterval(int startTick, boolean isPowered) {
+            this(startTick, startTick, isPowered);
+        }
+
+        public void setStartTick(int startTick) {
+            this.startTick = startTick;
+        }
+
+        public int getStartTick() {
+            return this.startTick;
+        }
+
+        public void setEndTick(int endTick) {
+            this.endTick = endTick;
+        }
+
+        public int getEndTick() {
+            return this.endTick;
+        }
+
+        public boolean isPowered() {
+            return powered;
+        }
+
+        public void setPowered(boolean powered) {
+            this.powered = powered;
+        }
+
+    }
+
     private String name;
     private int color;
-    private Trace<Boolean> trace;
+    private Trace<PowerInterval> trace;
     private BlockPos position;
     private int dimension;
 
-    public Meter(BlockPos position, int dimension, String name, int duration, int color) {
+    public Meter(BlockPos position, int dimension, String name, int maxIntervals, int color) {
         this.position = position;
         this.dimension = dimension;
         this.name = name;
-        this.trace = new Trace<Boolean>(duration);
+        this.trace = new Trace<PowerInterval>(maxIntervals);
         this.color = color;
     }
 
-    public void update(World world, int dimension) {
+    public void update(int currentTick, World world, int dimension) {
         if (dimension == this.dimension) {
             IBlockState state = world.getBlockState(position);
             Meterable m = (Meterable)state.getBlock();
-            trace.push(m.isPowered(state, world, position));
+            boolean isPowered = m.isPowered(state, world, position);
+
+            if (trace.size() == 0 || trace.get(0).isPowered() != isPowered) {
+                trace.push(new PowerInterval(currentTick, isPowered));
+            } else {
+                trace.get(0).setEndTick(currentTick);
+            }
         }
     }
 
-    public void setDuration(int ticks) {
+    public Trace<PowerInterval> getPowerIntervals() {
+        return trace;
+    }
+
+    public void setMaxIntervals(int ticks) {
         this.trace = this.trace.copyWithCapacity(ticks);
     }
 
-    public int getDuration() {
+    public int getMaxIntervals() {
         return this.trace.capacity();
-    }
-
-    public Trace<Boolean> getTrace() {
-        return trace;
     }
 
     public int getColor() {
