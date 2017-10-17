@@ -14,11 +14,7 @@ public class MeterManager {
     public void toggleMeter(BlockPos pos, int dimension, int duration) {
         boolean anyRemoved = meters.removeIf(m -> m.getPosition().equals(pos) && m.getDimension() == dimension);
         if (!anyRemoved) {
-            int color = 0xFF000000;
-            color |= (rand.nextInt(150) + 106);
-            color |= (rand.nextInt(150) + 106) << 8;
-            color |= (rand.nextInt(150) + 106) << 16;
-            Meter m = new Meter(pos, dimension, "Meter " + nameCounter++, duration, color);
+            Meter m = new Meter(pos, dimension, "Meter " + nameCounter++, duration, RandomColors.randomColor());
             meters.add(m);
         }
     }
