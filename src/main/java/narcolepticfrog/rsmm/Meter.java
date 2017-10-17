@@ -1,12 +1,8 @@
 package narcolepticfrog.rsmm;
 
-import net.minecraft.block.*;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.multiplayer.WorldClient;
-import net.minecraft.init.Blocks;
-import net.minecraft.tileentity.TileEntityComparator;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.WorldServer;
+import net.minecraft.world.World;
 
 public class Meter {
 
@@ -24,7 +20,7 @@ public class Meter {
         this.color = color;
     }
 
-    public void update(WorldServer world, int dimension) {
+    public void update(World world, int dimension) {
         if (dimension == this.dimension) {
             IBlockState state = world.getBlockState(position);
             Meterable m = (Meterable)state.getBlock();

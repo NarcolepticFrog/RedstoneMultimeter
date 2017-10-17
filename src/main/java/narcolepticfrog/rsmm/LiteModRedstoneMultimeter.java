@@ -74,9 +74,6 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
         }
     }
 
-    @Override
-    public void onPreRenderHUD(int screenWidth, int screenHeight) {
-    }
 
     @Override
     public void onPostRenderHUD(int screenWidth, int screenHeight) {
@@ -89,22 +86,9 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
     }
 
     @Override
-    public void onPostRenderEntities(float partialTicks) {
-    }
-
-    @Override
-    public String getVersion() {
-        return "0.1";
-    }
-
-    @Override
     public void init(File configPath) {
         LiteLoader.getInput().registerKeyBinding(toggleMeterKey);
         LiteLoader.getInput().registerKeyBinding(pauseMetersKey);
-    }
-
-    @Override
-    public void upgradeSettings(String version, File configPath, File oldConfigPath) {
     }
 
     @Override
@@ -113,8 +97,29 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
     }
 
     @Override
+    public String getVersion() {
+        return "0.1";
+    }
+
+
+    @Override
     public void provideCommands(ServerCommandManager commandManager) {
         commandManager.registerCommand(new MeterCommand(this));
     }
+
+    /* ----- Unused Interface Methods ----- */
+
+    @Override
+    public void upgradeSettings(String version, File configPath, File oldConfigPath) {
+    }
+
+    @Override
+    public void onPostRenderEntities(float partialTicks) {
+    }
+
+    @Override
+    public void onPreRenderHUD(int screenWidth, int screenHeight) {
+    }
+
 
 }

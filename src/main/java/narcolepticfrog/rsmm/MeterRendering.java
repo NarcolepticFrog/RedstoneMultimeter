@@ -41,6 +41,9 @@ public class MeterRendering {
     }
 
     public static void renderMeterTraces(List<Meter> meters, boolean paused) {
+
+        // Lord have mercy on my soul for this abomination.
+
         if (meters.size() == 0) {
             return;
         }

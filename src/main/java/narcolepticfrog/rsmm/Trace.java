@@ -1,5 +1,9 @@
 package narcolepticfrog.rsmm;
 
+/**
+ * A Ring-Buffer based data structure for storing the most recent elements of a stream.
+ * @param <T>
+ */
 public class Trace<T>
 {
 
