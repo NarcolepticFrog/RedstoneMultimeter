@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "package": "narcolepticfrog.rsmm.mixins",
+  "refmap": "mixins.redstonemultimeter.refmap.json",
+  "mixins": [
+    "MixinBlockButtonMeterable",
+    "MixinBlockLeverMeterable",
+    "MixinBlockMeterable",
+    "MixinBlockObserverMeterable",
+    "MixinBlockPressurePlateMeterable",
+    "MixinBlockPressurePlateWeightedMeterable",
+    "MixinBlockRailDetectorMeterable",
+    "MixinBlockRailPoweredMeterable",
+    "MixinBlockRedstoneComparatorMeterable",
+    "MixinBlockRedstoneRepeaterMeterable",
+    "MixinBlockRedstoneTorchMeterable",
+    "MixinBlockTripWireHookMeterable"
+  ]
+}

@@ -37,6 +37,7 @@ minecraft {
 sourceSets {
     main {
         // Refmap declaration must match the refmap name specified in the json config
+        ext.refMap = "mixins.redstonemultimeter.refmap.json"
     }
 }
 
@@ -51,6 +52,7 @@ litemod {
         name = "redstonemultimeter"
         mcversion = project.targetVersion
         description = "A tool for debugging redstone builds."
+        mixinConfigs += "mixins.redstonemultimeter.json"
     }
 }
 

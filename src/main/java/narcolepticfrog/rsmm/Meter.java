@@ -24,36 +24,11 @@ public class Meter {
         this.color = color;
     }
 
-    public boolean isPowered(WorldServer world, BlockPos position) {
-        Block block = world.getBlockState(position).getBlock();
-        IBlockState blockState = world.getBlockState(position);
-        if (block instanceof BlockRedstoneRepeater) {
-            return block == Blocks.POWERED_REPEATER;
-        } else if (block instanceof BlockRedstoneComparator) {
-            TileEntityComparator tec = (TileEntityComparator) world.getTileEntity(position);
-            return tec.getOutputSignal() > 0;
-        } else if (block instanceof BlockRedstoneTorch) {
-            return block == Blocks.REDSTONE_TORCH;
-        } else if (block instanceof BlockObserver) {
-            return blockState.getValue(BlockObserver.POWERED);
-        } else if (block instanceof BlockLever) {
-            return blockState.getValue(BlockLever.POWERED);
-        } else if (block instanceof BlockButton) {
-            return blockState.getValue(BlockButton.POWERED);
-        } else if (block instanceof BlockPressurePlate) {
-            return blockState.getValue(BlockPressurePlate.POWERED);
-        } else if (block instanceof BlockPressurePlateWeighted) {
-            return blockState.getValue(BlockPressurePlateWeighted.POWER) > 0;
-        } else if (block instanceof BlockTripWireHook) {
-            return blockState.getValue(BlockTripWireHook.POWERED);
-        } else {
-            return world.isBlockPowered(position);
-        }
-    }
-
     public void update(WorldServer world, int dimension) {
         if (dimension == this.dimension) {
-            trace.push(isPowered(world, position));
+            IBlockState state = world.getBlockState(position);
+            Meterable m = (Meterable)state.getBlock();
+            trace.push(m.isPowered(state, world, position));
         }
     }
 
