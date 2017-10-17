@@ -75,7 +75,8 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
     @Override
     public void onTick(MinecraftServer server) {
         if (!metersPaused) {
-            int windowStartTick = ((server.getTickCounter() + renderer.getWindowStartTick())/2 + 1);
+            int delta = server.getTickCounter() - renderer.getWindowStartTick();
+            int windowStartTick = (int)(renderer.getWindowStartTick() + 0.3*delta) + 1;
             if (windowStartTick > server.getTickCounter()) {
                 windowStartTick = server.getTickCounter();
             }

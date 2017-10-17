@@ -95,7 +95,7 @@ public class MeterRenderer {
         renderNames(namesWidth, meters);
         renderPoweredRectangles(totalWidth, meters);
         renderMeterGrid(namesWidth, totalWidth, totalHeight, meters.size());
-        renderPulseDurations(totalWidth, meters);
+        renderPulseDurations(totalWidth, paused, meters);
         renderPauseNotification(totalHeight, paused);
 
     }
@@ -202,7 +202,7 @@ public class MeterRenderer {
         }
     }
 
-    private void renderPulseDurations(int totalWidth, List<Meter> meters) {
+    private void renderPulseDurations(int totalWidth, boolean paused, List<Meter> meters) {
         FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
         for (int i = 0; i < meters.size(); i++) {
             Meter m = meters.get(i);
@@ -210,7 +210,7 @@ public class MeterRenderer {
             int bot = top + fr.FONT_HEIGHT;
 
             Trace<Meter.PowerInterval> powerIntervals = m.getPowerIntervals();
-            for (int t = 0; t < powerIntervals.size(); t++) {
+            for (int t = 1; t < powerIntervals.size(); t++) {
                 Meter.PowerInterval interval = powerIntervals.get(t);
                 int timeSinceStart = (int)(windowStartTick - interval.getStartTick());
                 int timeSinceEnd = (int)(windowStartTick - interval.getEndTick());

@@ -65,12 +65,12 @@ public class Meter {
     public void update(int currentTick, World world, int dimension) {
         if (dimension == this.dimension) {
             IBlockState state = world.getBlockState(position);
-            Meterable m = (Meterable)state.getBlock();
+            Meterable m = (Meterable) state.getBlock();
             boolean isPowered = m.isPowered(state, world, position);
 
-            if (trace.size() == 0 || trace.get(0).isPowered() != isPowered) {
+            if ((trace.size() == 0 && isPowered) || (trace.size() > 0 && trace.get(0).isPowered() != isPowered)) {
                 trace.push(new PowerInterval(currentTick, isPowered));
-            } else {
+            } else if (trace.size() > 0) {
                 trace.get(0).setEndTick(currentTick);
             }
         }

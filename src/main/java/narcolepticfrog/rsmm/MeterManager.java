@@ -8,7 +8,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class MeterManager {
 
     private List<Meter> meters = new CopyOnWriteArrayList<>(); // Todo: Think of a better concurrency solution.
-    private Random rand = new Random(0);
     private int nameCounter = 0;
 
     public void toggleMeter(BlockPos pos, int dimension, int duration) {
