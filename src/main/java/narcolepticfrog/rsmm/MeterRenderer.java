@@ -214,7 +214,7 @@ public class MeterRenderer {
                 Meter.PowerInterval interval = powerIntervals.get(t);
                 int timeSinceStart = (int)(windowStartTick - interval.getStartTick());
                 int timeSinceEnd = (int)(windowStartTick - interval.getEndTick());
-                int length = timeSinceStart - timeSinceEnd;
+                int length = timeSinceStart - timeSinceEnd + 1;
                 // Don't render anything outside the history
                 if (timeSinceEnd > windowLength) {
                     break;
