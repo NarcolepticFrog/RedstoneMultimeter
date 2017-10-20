@@ -51,28 +51,27 @@ public class Meter {
     private String name;
     private int color;
     private Trace<PowerInterval> trace;
-    private BlockPos position;
-    private int dimension;
 
-    public Meter(BlockPos position, int dimension, String name, int maxIntervals, int color) {
+    private World world;
+    private BlockPos position;
+
+    public Meter(BlockPos position, World world, String name, int maxIntervals, int color) {
         this.position = position;
-        this.dimension = dimension;
+        this.world = world;
         this.name = name;
         this.trace = new Trace<PowerInterval>(maxIntervals);
         this.color = color;
     }
 
-    public void update(int currentTick, World world, int dimension) {
-        if (dimension == this.dimension) {
-            IBlockState state = world.getBlockState(position);
-            Meterable m = (Meterable) state.getBlock();
-            boolean isPowered = m.isPowered(state, world, position);
+    public void update(int currentTick) {
+        IBlockState state = world.getBlockState(position);
+        Meterable m = (Meterable) state.getBlock();
+        boolean isPowered = m.isPowered(state, world, position);
 
-            if ((trace.size() == 0 && isPowered) || (trace.size() > 0 && trace.get(0).isPowered() != isPowered)) {
-                trace.push(new PowerInterval(currentTick, isPowered));
-            } else if (trace.size() > 0) {
-                trace.get(0).setEndTick(currentTick);
-            }
+        if ((trace.size() == 0 && isPowered) || (trace.size() > 0 && trace.get(0).isPowered() != isPowered)) {
+            trace.push(new PowerInterval(currentTick, isPowered));
+        } else if (trace.size() > 0) {
+            trace.get(0).setEndTick(currentTick);
         }
     }
 
@@ -96,8 +95,8 @@ public class Meter {
         return position;
     }
 
-    public int getDimension() {
-        return dimension;
+    public void setPosition(BlockPos position) {
+        this.position = position;
     }
 
     public String getName() {
@@ -110,6 +109,10 @@ public class Meter {
 
     public void clear() {
         trace.clear();
+    }
+
+    public int getDimension() {
+        return world.provider.getDimensionType().getId();
     }
 
 }

@@ -11,7 +11,7 @@ public class RandomColors {
      * Generates a random color, excluding colors that are too dark.
      */
     public static int randomColor() {
-        Color c = Color.getHSBColor(rand.nextFloat(), rand.nextFloat()*0.5F + 0.5F, rand.nextFloat()*0.5F + 0.5F);
+        Color c = Color.getHSBColor(rand.nextFloat(),  rand.nextFloat()*0.3F+0.3F, rand.nextFloat()*0.6F + 0.4F);
         int color = 0xFF000000;
         color |= c.getBlue();
         color |= c.getGreen() << 8;

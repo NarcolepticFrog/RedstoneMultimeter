@@ -6,13 +6,18 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.command.ServerCommandManager;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.world.World;
 import org.lwjgl.input.Keyboard;
 
 import java.io.File;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
-public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDRenderListener, PostRenderListener, ServerCommandProvider {
+public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDRenderListener, PostRenderListener, ServerCommandProvider, PistonPushListener {
 
     private static KeyBinding toggleMeterKey = new KeyBinding("Toggle Meter", Keyboard.KEY_M, "Redstone Multimeter");
     private static KeyBinding pauseMetersKey = new KeyBinding("Pause Meters", Keyboard.KEY_N, "Redstone Multimeter");
@@ -25,6 +30,9 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
     private MeterRenderer renderer = new MeterRenderer(60);
     private boolean metersPaused = false;
 
+    private Lock renderLock = new ReentrantLock();
+    private Lock serverLock = new ReentrantLock();
+
     public LiteModRedstoneMultimeter() {
     }
 
@@ -34,7 +42,7 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
 
     public void renameMeter(int ix, String name) {
         List<Meter> meters = meterManager.getMeters();
-        if (meters.size() > ix) {
+        if (0 <= ix && ix < meters.size()) {
             meters.get(ix).setName(name);
         }
     }
@@ -42,12 +50,19 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
     public void renameLastMeter(String name) {
         List<Meter> meters = meterManager.getMeters();
         if (meters.size() > 0) {
-            meters.get(meters.size()-1).setName(name);
+            meters.get(meters.size() - 1).setName(name);
         }
     }
 
     public void removeAll() {
-        meterManager.removeAll();
+        renderLock.lock();
+        serverLock.lock();
+        try {
+            meterManager.removeAll();
+        } finally {
+            renderLock.unlock();
+            serverLock.unlock();
+        }
     }
 
     @Override
@@ -55,7 +70,18 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
         if (toggleMeterKey.isPressed()) {
             RayTraceResult r = minecraft.objectMouseOver;
             if (r.typeOfHit == RayTraceResult.Type.BLOCK) {
-                meterManager.toggleMeter(r.getBlockPos(), minecraft.player.dimension, 1000);
+                renderLock.lock();
+                serverLock.lock();
+                try {
+                    int dim = minecraft.player.dimension;
+                    World world = minecraft.getIntegratedServer().getWorld(dim);
+                    // Note: We don't use minecraft.player.world because this is the client's version of the world
+                    //       and it can be out of sync with the server's version of the world.
+                    meterManager.toggleMeter(r.getBlockPos(), world);
+                } finally {
+                    serverLock.unlock();
+                    renderLock.unlock();
+                }
             }
         }
         if (pauseMetersKey.isPressed()) {
@@ -82,22 +108,44 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
             }
             renderer.setWindowStartTick(windowStartTick);
         }
-        for (Meter m : meterManager.getMeters()) {
-            for (int dim = 0; dim < server.worlds.length; dim++) {
-                m.update(server.getTickCounter(), server.worlds[dim], dim);
+        serverLock.lock();
+        try {
+            for (Meter m : meterManager.getMeters()) {
+                m.update(server.getTickCounter());
             }
+        } finally {
+            serverLock.unlock();
         }
     }
 
+    @Override
+    public void onPistonPush(World w, BlockPos pos, EnumFacing direction) {
+        serverLock.lock();
+        try {
+            meterManager.onPistonPush(w, pos, direction);
+        } finally {
+            serverLock.unlock();
+        }
+    }
 
     @Override
     public void onPostRenderHUD(int screenWidth, int screenHeight) {
-        renderer.renderMeterTraces(meterManager.getMeters(), metersPaused);
+        renderLock.lock();
+        try {
+            renderer.renderMeterTraces(meterManager.getMeters(), metersPaused);
+        } finally {
+            renderLock.unlock();
+        }
     }
 
     @Override
     public void onPostRender(float partialTicks) {
-        renderer.renderMeterHighlights(meterManager.getMeters(), partialTicks);
+        renderLock.lock();
+        try {
+            renderer.renderMeterHighlights(meterManager.getMeters(), partialTicks);
+        } finally {
+            renderLock.unlock();
+        }
     }
 
     @Override
@@ -106,6 +154,7 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
         LiteLoader.getInput().registerKeyBinding(pauseMetersKey);
         LiteLoader.getInput().registerKeyBinding(stepBackwardKey);
         LiteLoader.getInput().registerKeyBinding(stepForwardKey);
+        PistonPushEventDispatcher.addListener(this);
     }
 
     @Override
@@ -137,6 +186,5 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
     @Override
     public void onPreRenderHUD(int screenWidth, int screenHeight) {
     }
-
 
 }

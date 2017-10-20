@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.util.math.AxisAlignedBB;
 
+import java.util.Collection;
 import java.util.List;
 
 public class MeterRenderer {
@@ -51,7 +52,7 @@ public class MeterRenderer {
         return windowStartTick;
     }
 
-    public void renderMeterHighlights(List<Meter> meters, float partialTicks) {
+    public void renderMeterHighlights(Collection<Meter> meters, float partialTicks) {
         EntityPlayerSP player = Minecraft.getMinecraft().player;
         double dx = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTicks;
         double dy = player.lastTickPosY + (player.posY - player.lastTickPosY) * partialTicks;
@@ -63,14 +64,16 @@ public class MeterRenderer {
         GlStateManager.depthMask(false);
 
         for (Meter m : meters) {
-            int color = m.getColor();
+            if (player.dimension == m.getDimension()) {
+                int color = m.getColor();
 
-            float r = (float) (color >> 16 & 255) / 255.0F;
-            float g = (float) (color >> 8 & 255) / 255.0F;
-            float b = (float) (color & 255) / 255.0F;
+                float r = (float) (color >> 16 & 255) / 255.0F;
+                float g = (float) (color >> 8 & 255) / 255.0F;
+                float b = (float) (color & 255) / 255.0F;
 
-            AxisAlignedBB aabb = Block.FULL_BLOCK_AABB.offset(m.getPosition()).offset(-dx, -dy, -dz).grow(0.002);
-            RenderGlobal.renderFilledBox(aabb, r, g, b, 0.5F);
+                AxisAlignedBB aabb = Block.FULL_BLOCK_AABB.offset(m.getPosition()).offset(-dx, -dy, -dz).grow(0.002);
+                RenderGlobal.renderFilledBox(aabb, r, g, b, 0.5F);
+            }
         }
 
         GlStateManager.depthMask(true);
