@@ -11,8 +11,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
+import java.util.Collections;
 import java.util.List;
 
 @Mixin(BlockPistonBase.class)
@@ -20,14 +20,18 @@ public abstract class MixinBlockPistonBase {
 
     private static final String METHOD_INVOKE_ASSIGN = "net/minecraft/world/World.getBlockState(Lnet/minecraft/util/math/BlockPos;)Lnet/minecraft/block/state/IBlockState;";
 
-    @Inject(method = "doMove",
-            at = @At(value = "INVOKE_ASSIGN", target = METHOD_INVOKE_ASSIGN, ordinal = 2),
-            locals = LocalCapture.CAPTURE_FAILEXCEPTION)
-    public void onBlockMove(World world, BlockPos pos, EnumFacing facing, boolean extending, CallbackInfoReturnable<Boolean> ci,
-                            BlockPistonStructureHelper helper, List l1, List l2, List l3, int k, IBlockState[] starr,
-                            EnumFacing pushDir, int l, BlockPos moveBlock, IBlockState moveBlockState) {
+    @Inject(method = "doMove", at = @At("HEAD"))
+    public void onBlockMove(World world, BlockPos pos, EnumFacing facing, boolean extending, CallbackInfoReturnable<Boolean> ci) {
         if (!world.isRemote) {
-            PistonPushEventDispatcher.dispatchEvent(world, moveBlock, pushDir);
+            BlockPistonStructureHelper blockpistonstructurehelper = new BlockPistonStructureHelper(world, pos, facing, extending);
+            if (blockpistonstructurehelper.canMove()) {
+                EnumFacing pushDirection = extending ? facing : facing.getOpposite();
+                List<BlockPos> blocksToMove = blockpistonstructurehelper.getBlocksToMove();
+                Collections.reverse(blocksToMove);
+                for (BlockPos p : blocksToMove) {
+                    PistonPushEventDispatcher.dispatchEvent(world, p, pushDirection);
+                }
+            }
         }
     }
 
