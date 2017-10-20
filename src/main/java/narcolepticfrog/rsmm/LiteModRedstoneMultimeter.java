@@ -19,12 +19,10 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDRenderListener, PostRenderListener, ServerCommandProvider, PistonPushListener {
 
-    private static KeyBinding toggleMeterKey = new KeyBinding("Toggle Meter", Keyboard.KEY_M, "Redstone Multimeter");
-    private static KeyBinding pauseMetersKey = new KeyBinding("Pause Meters", Keyboard.KEY_N, "Redstone Multimeter");
-    private static KeyBinding stepForwardKey = new KeyBinding("Step Forward", Keyboard.KEY_PERIOD,
-            "Redstone Multimeter");
-    private static KeyBinding stepBackwardKey = new KeyBinding("Step Backward", Keyboard.KEY_COMMA,
-            "Redstone Multimeter");
+    private static KeyBinding toggleMeterKey = new KeyBinding("key.redstonemultimeter.toggle", Keyboard.KEY_M, "key.categories.redstonemultimeter");
+    private static KeyBinding pauseMetersKey = new KeyBinding("key.redstonemultimeter.pause", Keyboard.KEY_N, "key.categories.redstonemultimeter");
+    private static KeyBinding stepForwardKey = new KeyBinding("key.redstonemultimeter.forward", Keyboard.KEY_PERIOD, "key.categories.redstonemultimeter");
+    private static KeyBinding stepBackwardKey = new KeyBinding("key.redstonemultimeter.back", Keyboard.KEY_COMMA, "key.categories.redstonemultimeter");
 
     private MeterManager meterManager = new MeterManager();
     private MeterRenderer renderer = new MeterRenderer(60);
@@ -38,6 +36,10 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
 
     public void setWindowLength(int length) {
         renderer.setWindowLength(length);
+    }
+
+    public int getNumMeters() {
+        return meterManager.getMeters().size();
     }
 
     public void renameMeter(int ix, String name) {

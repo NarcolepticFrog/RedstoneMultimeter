@@ -7,6 +7,7 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.RenderGlobal;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.util.math.AxisAlignedBB;
 
 import java.util.Collection;
@@ -253,7 +254,7 @@ public class MeterRenderer {
     private void renderPauseNotification(int totalHeight, boolean paused) {
         FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
         if (paused) {
-            fr.drawString("Paused.", BORDER, totalHeight + 3, PAUSED_TEXT_COLOR);
+            fr.drawString(I18n.format("redstonemultimeter.ui.paused"), BORDER, totalHeight + 3, PAUSED_TEXT_COLOR);
         }
     }
 
