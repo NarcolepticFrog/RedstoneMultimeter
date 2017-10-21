@@ -1,6 +1,7 @@
 package narcolepticfrog.rsmm;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.math.BlockPos;
@@ -52,7 +53,7 @@ public class MeterManager {
             location2meter.remove(l);
             meters.remove(m);
         } else {
-            Meter m = new Meter(pos, world, "Meter " + nameCounter++, DEFAULT_MAX_INTERVALS, RandomColors.randomColor());
+            Meter m = new Meter(pos, world, I18n.format("redstonemultimeter.ui.metername", nameCounter++), DEFAULT_MAX_INTERVALS, RandomColors.randomColor());
             location2meter.put(l, m);
             meters.add(m);
         }
