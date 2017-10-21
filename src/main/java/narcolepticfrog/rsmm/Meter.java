@@ -1,6 +1,6 @@
-package narcolepticfrog.rsmm.meterable;
+package narcolepticfrog.rsmm;
 
-import narcolepticfrog.rsmm.Meterable;
+import narcolepticfrog.rsmm.meterable.Meterable;
 import narcolepticfrog.rsmm.util.Trace;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;

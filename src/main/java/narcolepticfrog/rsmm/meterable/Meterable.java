@@ -1,4 +1,4 @@
-package narcolepticfrog.rsmm;
+package narcolepticfrog.rsmm.meterable;
 
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;

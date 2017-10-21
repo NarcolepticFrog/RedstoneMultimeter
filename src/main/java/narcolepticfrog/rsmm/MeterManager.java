@@ -1,15 +1,9 @@
 package narcolepticfrog.rsmm;
 
-import narcolepticfrog.rsmm.meterable.Meter;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.EnumFacing;
-import net.minecraft.util.Tuple;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldProviderEnd;
-import net.minecraft.world.WorldServer;
-import net.minecraft.world.biome.BiomeEnd;
 
 import java.util.*;
 

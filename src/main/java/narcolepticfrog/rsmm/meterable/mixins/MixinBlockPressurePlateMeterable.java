@@ -1,6 +1,6 @@
 package narcolepticfrog.rsmm.meterable.mixins;
 
-import narcolepticfrog.rsmm.Meterable;
+import narcolepticfrog.rsmm.meterable.Meterable;
 import net.minecraft.block.BlockPressurePlate;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;

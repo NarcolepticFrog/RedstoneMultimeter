@@ -1,6 +1,6 @@
 package narcolepticfrog.rsmm.meterable.mixins;
 
-import narcolepticfrog.rsmm.Meterable;
+import narcolepticfrog.rsmm.meterable.Meterable;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockRedstoneRepeater;
 import net.minecraft.block.state.IBlockState;
