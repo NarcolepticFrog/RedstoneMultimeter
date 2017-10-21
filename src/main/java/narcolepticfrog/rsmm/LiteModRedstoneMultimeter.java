@@ -2,6 +2,7 @@ package narcolepticfrog.rsmm;
 
 import com.mumfrey.liteloader.*;
 import com.mumfrey.liteloader.core.LiteLoader;
+import narcolepticfrog.rsmm.clock.SubtickClock;
 import narcolepticfrog.rsmm.events.PistonPushEventDispatcher;
 import narcolepticfrog.rsmm.events.PistonPushListener;
 import net.minecraft.client.Minecraft;

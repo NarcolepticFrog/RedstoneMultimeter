@@ -1,0 +1,8 @@
+{
+  "required": true,
+  "package": "narcolepticfrog.rsmm.clock.mixins",
+  "refmap": "mixins.rsmm.clock.refmap.json",
+  "mixins": [
+    "MixinMinecraftServer"
+  ]
+}

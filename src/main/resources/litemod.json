@@ -4,6 +4,7 @@
   "mcversion": "1.12.2",
   "mixinConfigs": [
     "mixins.rsmm.meterable.json",
-    "mixins.rsmm.events.json"
+    "mixins.rsmm.events.json",
+    "mixins.rsmm.clock.json"
   ]
 }
