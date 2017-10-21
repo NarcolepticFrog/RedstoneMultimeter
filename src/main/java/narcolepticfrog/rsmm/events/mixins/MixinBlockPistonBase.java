@@ -1,9 +1,8 @@
-package narcolepticfrog.rsmm.mixins;
+package narcolepticfrog.rsmm.events.mixins;
 
-import narcolepticfrog.rsmm.PistonPushEventDispatcher;
+import narcolepticfrog.rsmm.events.PistonPushEventDispatcher;
 import net.minecraft.block.BlockPistonBase;
 import net.minecraft.block.state.BlockPistonStructureHelper;
-import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;

@@ -1,8 +1,9 @@
 {
-    "name": "redstonemultimeter",
-    "version": 0.1,
-    "mcversion": "1.12.2",
-    "mixinConfigs": [
-      "mixins.redstonemultimeter.json"
-    ]
+  "name": "redstonemultimeter",
+  "version": 0.1,
+  "mcversion": "1.12.2",
+  "mixinConfigs": [
+    "mixins.rsmm.meterable.json",
+    "mixins.rsmm.events.json"
+  ]
 }

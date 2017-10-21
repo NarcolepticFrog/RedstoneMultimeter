@@ -1,5 +1,7 @@
 package narcolepticfrog.rsmm;
 
+import narcolepticfrog.rsmm.meterable.Meter;
+import narcolepticfrog.rsmm.util.Trace;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;

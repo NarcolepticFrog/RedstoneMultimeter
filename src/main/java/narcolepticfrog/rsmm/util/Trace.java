@@ -1,4 +1,4 @@
-package narcolepticfrog.rsmm;
+package narcolepticfrog.rsmm.util;
 
 /**
  * A Ring-Buffer based data structure for storing the most recent elements of a stream.

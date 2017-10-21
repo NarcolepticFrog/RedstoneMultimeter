@@ -1,5 +1,6 @@
 package narcolepticfrog.rsmm;
 
+import narcolepticfrog.rsmm.meterable.Meter;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.EnumFacing;
@@ -11,7 +12,6 @@ import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.BiomeEnd;
 
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MeterManager {
 

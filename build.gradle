@@ -52,7 +52,8 @@ litemod {
         name = "redstonemultimeter"
         mcversion = project.targetVersion
         description = "A tool for debugging redstone builds."
-        mixinConfigs += "mixins.redstonemultimeter.json"
+        mixinConfigs += "mixins.rsmm.meterable.json"
+        mixinConfigs += "mixins.rsmm.events.json"
     }
 }
 
