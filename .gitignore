@@ -75,4 +75,3 @@ nb-configuration.xml
 *.iws
 *.launch
 *.number
-gradle/
