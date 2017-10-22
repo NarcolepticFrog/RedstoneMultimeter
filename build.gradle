@@ -37,7 +37,7 @@ minecraft {
 sourceSets {
     main {
         // Refmap declaration must match the refmap name specified in the json config
-        ext.refMap = "mixins.redstonemultimeter.refmap.json"
+        ext.refMap = "mixins.rsmm.refmap.json"
     }
 }
 

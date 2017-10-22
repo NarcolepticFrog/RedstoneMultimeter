@@ -3,8 +3,12 @@ package narcolepticfrog.rsmm;
 import com.mumfrey.liteloader.*;
 import com.mumfrey.liteloader.core.LiteLoader;
 import narcolepticfrog.rsmm.clock.SubtickClock;
+import narcolepticfrog.rsmm.clock.SubtickTime;
+import narcolepticfrog.rsmm.events.NeighborChangeEventDispatcher;
+import narcolepticfrog.rsmm.events.NeighborChangeListener;
 import narcolepticfrog.rsmm.events.PistonPushEventDispatcher;
 import narcolepticfrog.rsmm.events.PistonPushListener;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.command.ServerCommandManager;
@@ -20,7 +24,8 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDRenderListener, PostRenderListener, ServerCommandProvider, PistonPushListener {
+public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDRenderListener, PostRenderListener,
+        ServerCommandProvider, PistonPushListener, NeighborChangeListener {
 
     private static KeyBinding toggleMeterKey = new KeyBinding("key.redstonemultimeter.toggle", Keyboard.KEY_M, "key.categories.redstonemultimeter");
     private static KeyBinding pauseMetersKey = new KeyBinding("key.redstonemultimeter.pause", Keyboard.KEY_N, "key.categories.redstonemultimeter");
@@ -134,6 +139,11 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
     }
 
     @Override
+    public void onNeighborChanged(World world, BlockPos pos, Block block, BlockPos neighbor) {
+        //System.out.println(SubtickClock.getClock().takeNextTime() + " " + pos);
+    }
+
+    @Override
     public void onPostRenderHUD(int screenWidth, int screenHeight) {
         renderLock.lock();
         try {
@@ -160,6 +170,7 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
         LiteLoader.getInput().registerKeyBinding(stepBackwardKey);
         LiteLoader.getInput().registerKeyBinding(stepForwardKey);
         PistonPushEventDispatcher.addListener(this);
+        NeighborChangeEventDispatcher.addListener(this);
     }
 
     @Override
@@ -191,5 +202,6 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
     @Override
     public void onPreRenderHUD(int screenWidth, int screenHeight) {
     }
+
 
 }

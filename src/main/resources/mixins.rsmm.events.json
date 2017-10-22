@@ -1,8 +1,9 @@
 {
   "required": true,
   "package": "narcolepticfrog.rsmm.events.mixins",
-  "refmap": "mixins.rsmm.events.refmap.json",
+  "refmap": "mixins.rsmm.refmap.json",
   "mixins": [
-    "MixinBlockPistonBase"
+    "MixinBlockPistonBase",
+    "MixinStateImplementation"
   ]
 }

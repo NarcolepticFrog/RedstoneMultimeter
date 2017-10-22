@@ -1,7 +1,7 @@
 {
   "required": true,
   "package": "narcolepticfrog.rsmm.meterable.mixins",
-  "refmap": "mixins.rsmm.meterable.refmap.json",
+  "refmap": "mixins.rsmm.refmap.json",
   "mixins": [
     "MixinBlockButtonMeterable",
     "MixinBlockLeverMeterable",
