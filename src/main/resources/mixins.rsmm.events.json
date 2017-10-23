@@ -4,6 +4,7 @@
   "refmap": "mixins.rsmm.refmap.json",
   "mixins": [
     "MixinBlockPistonBase",
-    "MixinStateImplementation"
+    "MixinChunk",
+    "MixinWorld"
   ]
 }
