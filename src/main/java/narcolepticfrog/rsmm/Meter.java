@@ -1,92 +1,129 @@
 package narcolepticfrog.rsmm;
 
+import narcolepticfrog.rsmm.clock.SubtickClock;
+import narcolepticfrog.rsmm.clock.SubtickTime;
 import narcolepticfrog.rsmm.meterable.Meterable;
 import narcolepticfrog.rsmm.util.Trace;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import java.util.function.Consumer;
+
 public class Meter {
 
-    public class PowerInterval {
-
-        private int startTick;
-        private int endTick;
-        private boolean powered;
-
-        public PowerInterval(int startTick, int endTick, boolean isPowered) {
-            setStartTick(startTick);
-            setEndTick(endTick);
-            setPowered(isPowered);
-        }
-
-        public PowerInterval(int startTick, boolean isPowered) {
-            this(startTick, startTick, isPowered);
-        }
-
-        public void setStartTick(int startTick) {
-            this.startTick = startTick;
-        }
-
-        public int getStartTick() {
-            return this.startTick;
-        }
-
-        public void setEndTick(int endTick) {
-            this.endTick = endTick;
-        }
-
-        public int getEndTick() {
-            return this.endTick;
-        }
-
-        public boolean isPowered() {
-            return powered;
-        }
-
-        public void setPowered(boolean powered) {
-            this.powered = powered;
-        }
-
-    }
+    public static final int MAX_STATE_CHANGES = 10000;
 
     private String name;
     private int color;
-    private Trace<PowerInterval> trace;
-
+    private Trace<StateChange> stateChanges;
     private World world;
     private BlockPos position;
 
-    public Meter(BlockPos position, World world, String name, int maxIntervals, int color) {
+    public Meter(BlockPos position, World world, String name, int color) {
         this.position = position;
         this.world = world;
         this.name = name;
-        this.trace = new Trace<PowerInterval>(maxIntervals);
+        this.stateChanges = new Trace<>(MAX_STATE_CHANGES);
         this.color = color;
+        checkForUpdate();
     }
 
-    public void update(int currentTick) {
+    public void checkForUpdate() {
         IBlockState state = world.getBlockState(position);
         Meterable m = (Meterable) state.getBlock();
         boolean isPowered = m.isPowered(state, world, position);
 
-        if ((trace.size() == 0 && isPowered) || (trace.size() > 0 && trace.get(0).isPowered() != isPowered)) {
-            trace.push(new PowerInterval(currentTick, isPowered));
-        } else if (trace.size() > 0) {
-            trace.get(0).setEndTick(currentTick);
+        boolean stateChanged = stateChanges.size() > 0 && stateChanges.get(0).getState() != isPowered;
+        stateChanged |= stateChanges.size() == 0 && isPowered;
+
+        if (stateChanged) {
+            SubtickTime time = SubtickClock.getClock().takeNextTime();
+            stateChanges.push(new StateChange(time, isPowered));
         }
     }
 
-    public Trace<PowerInterval> getPowerIntervals() {
-        return trace;
+    public StateChange getStateChange(SubtickTime time) {
+        int ix = stateChanges.binarySearch(time, StateChange::getTime);
+        if (ix >= 0 && ix < stateChanges.size() && stateChanges.get(ix).getTime().equals(time)) {
+            return stateChanges.get(ix);
+        }
+        return null;
     }
 
-    public void setMaxIntervals(int ticks) {
-        this.trace = this.trace.copyWithCapacity(ticks);
+    public StateChange mostRecentChange(SubtickTime time) {
+        int ix = stateChanges.binarySearch(time, StateChange::getTime);
+        if (ix == -1) {
+            return null;
+        }
+        return stateChanges.get(ix);
     }
 
-    public int getMaxIntervals() {
-        return this.trace.capacity();
+    public int stateDuration(SubtickTime t) {
+        int ix = stateChanges.binarySearch(t, StateChange::getTime);
+        if (ix <= 0) {
+            return -1;
+        }
+        int startTick = stateChanges.get(ix).getTime().getTick();
+        int endTick = stateChanges.get(ix-1).getTime().getTick();
+        return endTick - startTick;
+    }
+
+    /**
+     * Returns true if the meter was powered at the given SubtickTime.
+     */
+    public boolean wasPoweredAt(SubtickTime time) {
+        int ix = stateChanges.binarySearch(time, StateChange::getTime);
+        if (ix == -1) {
+            return false;
+        }
+        return stateChanges.get(ix).getState();
+    }
+
+    /**
+     * Returns true if the meter was powered when the given tick started.
+     */
+    public boolean wasPoweredAtStart(int tick) {
+        return wasPoweredAt(SubtickClock.getClock().lastTimeOfTick(tick-1));
+    }
+
+    /**
+     * Returns true if the meter was powered before the start of this tick, and had no state changes during the tick.
+     */
+    public boolean wasPoweredEntireTick(int tick) {
+        if (!wasPoweredAtStart(tick)) {
+            return false;
+        }
+        int ix = stateChanges.binarySearch(SubtickClock.getClock().lastTimeOfTick(tick-1), StateChange::getTime);
+        return ix <= 0 || stateChanges.get(ix-1).getTime().compareTo(SubtickClock.getClock().lastTimeOfTick(tick)) > 0;
+    }
+
+    /**
+     * Returns true if the meter was powered for any SubtickTime during the given tick.
+     */
+    public boolean wasPoweredDuring(int tick) {
+        if (wasPoweredAtStart(tick)) {
+            return true;
+        }
+        SubtickTime start = SubtickClock.getClock().lastTimeOfTick(tick-1);
+        SubtickTime end = SubtickClock.getClock().lastTimeOfTick(tick);
+        boolean[] powered = {false};
+        forEachChange(start, end, sc -> powered[0] |= sc.getState());
+        return powered[0];
+    }
+
+    /**
+     * Executes function f for each state changes that occurred between SubtickTimes a and b (inclusively).
+     */
+    public void forEachChange(SubtickTime a, SubtickTime b, Consumer<StateChange> f) {
+        int ix = stateChanges.binarySearch(a, StateChange::getTime);
+        if (ix == -1) {
+            ix = stateChanges.size() - 1;
+        }
+        while (ix >= 0 && stateChanges.get(ix).getTime().compareTo(b) <= 0) {
+            f.accept(stateChanges.get(ix));
+            ix -= 1;
+        }
     }
 
     public int getColor() {
@@ -109,12 +146,26 @@ public class Meter {
         this.name = name;
     }
 
-    public void clear() {
-        trace.clear();
-    }
-
     public int getDimension() {
         return world.provider.getDimensionType().getId();
+    }
+
+    public static class StateChange {
+        private SubtickTime time;
+        private boolean state;
+
+        public StateChange(SubtickTime time, boolean newState) {
+            this.time = time;
+            this.state = newState;
+        }
+
+        public SubtickTime getTime() {
+            return time;
+        }
+
+        public boolean getState() {
+            return state;
+        }
     }
 
 }

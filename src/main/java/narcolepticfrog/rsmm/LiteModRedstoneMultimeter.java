@@ -1,13 +1,18 @@
 package narcolepticfrog.rsmm;
 
-import com.mumfrey.liteloader.*;
+import com.mumfrey.liteloader.HUDRenderListener;
+import com.mumfrey.liteloader.PostRenderListener;
+import com.mumfrey.liteloader.ServerCommandProvider;
+import com.mumfrey.liteloader.Tickable;
 import com.mumfrey.liteloader.core.LiteLoader;
-import narcolepticfrog.rsmm.events.*;
-import net.minecraft.block.Block;
+import narcolepticfrog.rsmm.clock.SubtickClock;
+import narcolepticfrog.rsmm.events.PistonPushEventDispatcher;
+import narcolepticfrog.rsmm.events.PistonPushListener;
+import narcolepticfrog.rsmm.events.StateChangeEventDispatcher;
+import narcolepticfrog.rsmm.events.StateChangeListener;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.command.ServerCommandManager;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
@@ -19,7 +24,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDRenderListener, PostRenderListener,
+public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, PostRenderListener,
         ServerCommandProvider, PistonPushListener, StateChangeListener {
 
     private static KeyBinding toggleMeterKey = new KeyBinding("key.redstonemultimeter.toggle", Keyboard.KEY_M, "key.categories.redstonemultimeter");
@@ -31,8 +36,7 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
     private MeterRenderer renderer = new MeterRenderer(60);
     private boolean metersPaused = false;
 
-    private Lock renderLock = new ReentrantLock();
-    private Lock serverLock = new ReentrantLock();
+    private Lock mutex = new ReentrantLock();
 
     public LiteModRedstoneMultimeter() {
     }
@@ -60,13 +64,11 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
     }
 
     public void removeAll() {
-        renderLock.lock();
-        serverLock.lock();
+        mutex.lock();
         try {
             meterManager.removeAll();
         } finally {
-            renderLock.unlock();
-            serverLock.unlock();
+            mutex.unlock();
         }
     }
 
@@ -75,8 +77,7 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
         if (toggleMeterKey.isPressed()) {
             RayTraceResult r = minecraft.objectMouseOver;
             if (r.typeOfHit == RayTraceResult.Type.BLOCK) {
-                renderLock.lock();
-                serverLock.lock();
+                mutex.lock();
                 try {
                     int dim = minecraft.player.dimension;
                     World world = minecraft.getIntegratedServer().getWorld(dim);
@@ -84,8 +85,7 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
                     //       and it can be out of sync with the server's version of the world.
                     meterManager.toggleMeter(r.getBlockPos(), world);
                 } finally {
-                    serverLock.unlock();
-                    renderLock.unlock();
+                    mutex.unlock();
                 }
             }
         }
@@ -94,67 +94,64 @@ public class LiteModRedstoneMultimeter implements Tickable, ServerTickable, HUDR
         }
 
         if (metersPaused) {
+            boolean ctrlPressed = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL);
+            int dist = ctrlPressed ? 10 : 1;
             if (stepForwardKey.isPressed()) {
-                renderer.setWindowStartTick(renderer.getWindowStartTick() + 10);
+                renderer.setWindowStartTick(renderer.getWindowStartTick() + dist);
             }
             if (stepBackwardKey.isPressed()) {
-                renderer.setWindowStartTick(renderer.getWindowStartTick() - 10);
+                renderer.setWindowStartTick(renderer.getWindowStartTick() - dist);
             }
-        }
-    }
-
-    @Override
-    public void onTick(MinecraftServer server) {
-        if (!metersPaused) {
-            int delta = server.getTickCounter() - renderer.getWindowStartTick();
-            int windowStartTick = (int)(renderer.getWindowStartTick() + 0.3*delta) + 1;
-            if (windowStartTick > server.getTickCounter()) {
-                windowStartTick = server.getTickCounter();
-            }
-            renderer.setWindowStartTick(windowStartTick);
-        }
-        serverLock.lock();
-        try {
-            for (Meter m : meterManager.getMeters()) {
-                m.update(server.getTickCounter());
-            }
-        } finally {
-            serverLock.unlock();
         }
     }
 
     @Override
     public void onPistonPush(World w, BlockPos pos, EnumFacing direction) {
-        serverLock.lock();
+        mutex.lock();
         try {
             meterManager.onPistonPush(w, pos, direction);
         } finally {
-            serverLock.unlock();
+            mutex.unlock();
         }
     }
 
     @Override
     public void onStateChange(World world, BlockPos pos) {
-
+        mutex.lock();
+        try {
+            Meter m = meterManager.getMeter(world, pos);
+            if (m != null) {
+                m.checkForUpdate();
+            }
+        } finally {
+            mutex.unlock();
+        }
     }
 
     @Override
     public void onPostRenderHUD(int screenWidth, int screenHeight) {
-        renderLock.lock();
+        mutex.lock();
         try {
+            if (!metersPaused) {
+                int currentTick = SubtickClock.getClock().getTick();
+                int delta = currentTick - renderer.getWindowStartTick();
+                int windowStartTick = (int)(renderer.getWindowStartTick() + 0.3*delta) + 1;
+                windowStartTick = Math.min(windowStartTick, currentTick);
+                renderer.setWindowStartTick(windowStartTick);
+            }
             renderer.renderMeterTraces(meterManager.getMeters(), metersPaused);
         } finally {
-            renderLock.unlock();
+            mutex.unlock();
         }
     }
 
     @Override
     public void onPostRender(float partialTicks) {
-        renderLock.lock();
+        mutex.lock();
         try {
             renderer.renderMeterHighlights(meterManager.getMeters(), partialTicks);
         } finally {
-            renderLock.unlock();
+            mutex.unlock();
         }
     }
 

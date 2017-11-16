@@ -5,14 +5,13 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MeterManager {
 
-    private static int DEFAULT_MAX_INTERVALS = 1000;
-
-    // This class is just used as a key into our Location to Meter map. We don't
-    // want to confuse meters in different worlds with one another.
     private static class Location {
         int dim;
         BlockPos p;
@@ -47,7 +46,7 @@ public class MeterManager {
             location2meter.remove(l);
             meters.remove(m);
         } else {
-            Meter m = new Meter(pos, world, I18n.format("redstonemultimeter.ui.metername", nameCounter++), DEFAULT_MAX_INTERVALS, RandomColors.randomColor());
+            Meter m = new Meter(pos, world, I18n.format("redstonemultimeter.ui.metername", nameCounter++), RandomColors.randomColor());
             location2meter.put(l, m);
             meters.add(m);
         }
@@ -73,4 +72,13 @@ public class MeterManager {
             location2meter.put(new Location(w, newPos), m);
         }
     }
+
+    public Meter getMeter(World world, BlockPos pos) {
+        Location l = new Location(world, pos);
+        if (location2meter.containsKey(l)) {
+            return location2meter.get(l);
+        }
+        return null;
+    }
+
 }

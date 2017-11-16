@@ -1,6 +1,7 @@
 package narcolepticfrog.rsmm;
 
-import narcolepticfrog.rsmm.util.Trace;
+import narcolepticfrog.rsmm.clock.SubtickClock;
+import narcolepticfrog.rsmm.clock.SubtickTime;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityPlayerSP;
@@ -16,14 +17,16 @@ import java.util.List;
 
 public class MeterRenderer {
 
-    private static final int TICK_WIDTH = 3; // The width of each tick in the display
+    private static final int TICK_WIDTH = 4; // The width of each tick in the display
     private static final int ROW_GAP = 1; // The vertical spacing between each meter
     private static final int NAME_TRACE_GAP = 3; // The amount of space between the names and meters
+    private static final int SUBTICK_GAP = 3; // The amount of space between the regular meter and subtick meter.
     private static final int BORDER = 1;
 
     private static final int BACKGROUND_COLOR = 0xFF202020;
     private static final int MAJOR_GRID_COLOR = 0xFF606060;
     private static final int MINOR_GRID_COLOR = 0xFF404040;
+    private static final int SELECTED_TICK_COLOR = 0xFFFFFFFF;
 
     private static final int POWERED_TEXT_COLOR = 0xFF000000;
     private static final int UNPOWERED_TEXT_COLOR = 0xFF707070;
@@ -52,6 +55,10 @@ public class MeterRenderer {
 
     public int getWindowStartTick() {
         return windowStartTick;
+    }
+
+    public int getSelectedTick() {
+        return windowStartTick - windowLength/4;
     }
 
     public void renderMeterHighlights(Collection<Meter> meters, float partialTicks) {
@@ -102,6 +109,8 @@ public class MeterRenderer {
         renderMeterGrid(namesWidth, totalWidth, totalHeight, meters.size());
         renderPulseDurations(totalWidth, paused, meters);
         renderPauseNotification(totalHeight, paused);
+        renderSelectedTickMarker(totalWidth, totalHeight);
+        renderSubtick(totalWidth, totalHeight, meters, paused);
 
     }
 
@@ -163,27 +172,17 @@ public class MeterRenderer {
             int top = BORDER + i*fr.FONT_HEIGHT + ((i != 0) ? i*ROW_GAP : 0);
             int bot = top + fr.FONT_HEIGHT;
 
-            Trace<Meter.PowerInterval> intervals = m.getPowerIntervals();
-            for (int t = 0; t < intervals.size(); t++) {
-                Meter.PowerInterval interval = intervals.get(t);
-                if (interval.isPowered()) {
-                    int shiftedStart = windowStartTick - interval.getStartTick();
-                    int shiftedEnd = windowStartTick - interval.getEndTick();
-                    // Skip any blocks that start after the window
-                    if (shiftedStart < 0) {
-                        continue;
-                    }
-                    // Stop rendering once the bar is completely before the window
-                    if (shiftedEnd > windowLength) {
-                        break;
-                    }
-                    // Adjust the start and end to be within the window
-                    int clippedStart = Math.min(shiftedStart, windowLength-1);
-                    int clippedEnd = Math.max(shiftedEnd, 0);
+            for (int t = windowStartTick; t > windowStartTick - windowLength; t--) {
+                int left = totalWidth - BORDER - (windowStartTick - t + 1)*TICK_WIDTH;
+                int right = totalWidth - BORDER - (windowStartTick - t)*TICK_WIDTH;
 
-                    int left = totalWidth - BORDER - (clippedStart+1)*TICK_WIDTH;
-                    int right = totalWidth - BORDER - (clippedEnd)*TICK_WIDTH;
+                if (m.wasPoweredEntireTick(t)) {
                     Gui.drawRect(left, top, right, bot, m.getColor());
+                } else if (m.wasPoweredAtStart(t)) {
+                    Gui.drawRect(left, top, right, bot, m.getColor());
+                    Gui.drawRect(left+2, top+1, right-1, bot-1, BACKGROUND_COLOR);
+                } else if (m.wasPoweredDuring(t)) {
+                    Gui.drawRect(left+2, top+1, right-1, bot-1, m.getColor());
                 }
             }
         }
@@ -207,45 +206,96 @@ public class MeterRenderer {
         }
     }
 
-    private void renderPulseDurations(int totalWidth, boolean paused, List<Meter> meters) {
+    private void renderSelectedTickMarker(int totalWidth, int totalHeight) {
+        int t = getSelectedTick();
+        int left = totalWidth - BORDER - (windowStartTick - t)*TICK_WIDTH;
+        int right = totalWidth - BORDER - (windowStartTick - t + 1)*TICK_WIDTH;
+        int top = 0;
+        int bottom = totalHeight;
+
+        Gui.drawRect(left, top, left+1, bottom, SELECTED_TICK_COLOR);
+        Gui.drawRect(right, top, right+1, bottom, SELECTED_TICK_COLOR);
+        Gui.drawRect(left, top, right, top+1, SELECTED_TICK_COLOR);
+        Gui.drawRect(left, bottom-1, right, bottom, SELECTED_TICK_COLOR);
+    }
+
+    private void renderSubtick(int totalWidth, int totalHeight, List<Meter> meters, boolean paused) {
+        int tick = getSelectedTick();
+        int numSubticks = SubtickClock.getClock().tickLength(tick);
+        if (numSubticks == 0 || !paused) {
+            return;
+        }
+
         FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
+        Gui.drawRect(totalWidth+SUBTICK_GAP, 0,
+                totalWidth + SUBTICK_GAP + numSubticks*TICK_WIDTH, totalHeight, BACKGROUND_COLOR);
+
         for (int i = 0; i < meters.size(); i++) {
             Meter m = meters.get(i);
             int top = BORDER + i*fr.FONT_HEIGHT + ((i != 0) ? i*ROW_GAP : 0);
             int bot = top + fr.FONT_HEIGHT;
 
-            Trace<Meter.PowerInterval> powerIntervals = m.getPowerIntervals();
-            for (int t = 1; t < powerIntervals.size(); t++) {
-                Meter.PowerInterval interval = powerIntervals.get(t);
-                int timeSinceStart = (int)(windowStartTick - interval.getStartTick());
-                int timeSinceEnd = (int)(windowStartTick - interval.getEndTick());
-                int length = timeSinceStart - timeSinceEnd + 1;
-                // Don't render anything outside the history
-                if (timeSinceEnd > windowLength) {
-                    break;
-                }
-                if (timeSinceStart < 0) {
-                    continue;
-                }
-                timeSinceStart = Math.min(windowLength-1, timeSinceStart);
+            for (int subtick = 0; subtick < numSubticks; subtick++) {
+                SubtickTime time = new SubtickTime(tick, subtick);
 
-                if (length >= 5) {
-                    int left = totalWidth - BORDER - (timeSinceStart + 1) * TICK_WIDTH + 1;
-                    int right = totalWidth - BORDER - timeSinceEnd * TICK_WIDTH;
-                    String lengthStr = "" + length;
-                    int width = fr.getStringWidth(lengthStr) + 1;
+                Meter.StateChange stateChange = m.getStateChange(time);
+                int left = totalWidth + SUBTICK_GAP + subtick*TICK_WIDTH;
+                int right = totalWidth + SUBTICK_GAP + (subtick + 1)*TICK_WIDTH;
 
-                    if (left + width + 1 <= totalWidth && left + width + 1 <= right) {
+                if (stateChange != null) {
+                    if (stateChange.getState()) {
+                        Gui.drawRect(left, top, right, bot, 0xFF00FF00);
+                    } else {
+                        Gui.drawRect(left, top, right, bot, 0xFFFF0000);
+                    }
+                } else {
+                    if (m.wasPoweredAt(time)) {
+                        Gui.drawRect(left, top, right, bot, m.getColor());
+                    }
+                }
+            }
+
+        }
+
+        // Draw horizontal lines
+        for (int i = 0; i <= meters.size(); i++) {
+            int y = i*fr.FONT_HEIGHT + ((i != 0) ? i * ROW_GAP : 0);
+            Gui.drawRect(totalWidth+SUBTICK_GAP, y,
+                    totalWidth+SUBTICK_GAP+numSubticks*TICK_WIDTH, y+1, MINOR_GRID_COLOR);
+        }
+        // Draw vertical lines
+        for (int t = 0; t <= numSubticks; t++) {
+            int x = totalWidth + SUBTICK_GAP + t*TICK_WIDTH;
+            Gui.drawRect(x, 0, x+1, totalHeight, MINOR_GRID_COLOR);
+        }
+    }
+
+    private void renderPulseDurations(int totalWidth, boolean paused, List<Meter> meters) {
+        FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
+        for (int i = 0; i < meters.size(); i++) {
+            Meter m = meters.get(i);
+            int top = BORDER + i * fr.FONT_HEIGHT + ((i != 0) ? i * ROW_GAP : 0);
+            int bot = top + fr.FONT_HEIGHT;
+
+            for (int t = windowStartTick - windowLength + 1; t <= windowStartTick; t++) {
+                SubtickTime stt = SubtickClock.getClock().firstTimeOfTick(t);
+
+                Meter.StateChange mostRecentChange = m.mostRecentChange(stt);
+                if (mostRecentChange != null && mostRecentChange.getTime().getTick() == t-1) {
+                    int duration = m.stateDuration(stt);
+                    if (duration > 5) {
+                        int left = totalWidth - BORDER - (windowStartTick - t + 1) * TICK_WIDTH + 1;
+                        String durationStr = "" + duration;
+                        int width = fr.getStringWidth(durationStr) + 1;
 
                         int color = m.getColor();
                         int textColor = POWERED_TEXT_COLOR;
-                        if (!interval.isPowered()) {
+                        if (!mostRecentChange.getState()) {
                             color = BACKGROUND_COLOR;
                             textColor = UNPOWERED_TEXT_COLOR;
                         }
-
                         Gui.drawRect(left, top, left + width + 1, bot, color);
-                        fr.drawString(lengthStr, left + 1, top + 1, textColor);
+                        fr.drawString(durationStr, left + 1, top + 1, textColor);
                     }
                 }
             }

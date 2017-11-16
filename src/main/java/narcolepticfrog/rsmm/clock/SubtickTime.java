@@ -27,6 +27,14 @@ public class SubtickTime implements Comparable<SubtickTime> {
         }
     }
 
+    public boolean equals(Object o) {
+        if (o instanceof SubtickTime) {
+            SubtickTime ot = (SubtickTime) o;
+            return compareTo(ot) == 0;
+        }
+        return false;
+    }
+
     public String toString() {
         return "SubtickTime[tick = " + tick + ", subtickIndex = " + subtickIndex + "]";
     }

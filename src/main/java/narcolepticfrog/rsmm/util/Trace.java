@@ -1,5 +1,7 @@
 package narcolepticfrog.rsmm.util;
 
+import java.util.function.Function;
+
 /**
  * A Ring-Buffer based data structure for storing the most recent elements of a stream.
  * @param <T>
@@ -77,6 +79,35 @@ public class Trace<T>
         }
         b.append("]");
         return b.toString();
+    }
+
+    /**
+     * Returns the smallest index {@code i} such that {@code by(get(i)) <= v}. Assumes that the elements
+     * of the trace are in decreasing order (note: since the element at index i is the ith most recent
+     * thing pushed into the trace, this requires that the elements are pushed into the trace in
+     * increasing order).
+     */
+    public <C extends Comparable<C>> int binarySearch(C v, Function<T,C> by) {
+        if (this.size() == 0) {
+            return -1;
+        }
+        C smallest = by.apply(this.get(this.size() - 1));
+        if (v.compareTo(smallest) < 0) {
+            return -1;
+        }
+
+        int high = this.size()-1;
+        int low = 0;
+        while (high > low) {
+            int mid = low + (high - low)/2;
+            int comp = by.apply(this.get(mid)).compareTo(v);
+            if (comp <= 0) {
+                high = mid;
+            } else {
+                low = mid + 1;
+            }
+        }
+        return low;
     }
 
 }
