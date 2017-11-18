@@ -11,7 +11,7 @@ this mod a great tool for getting into technical redstone that requires correct
 scheduling of events within a single gametick.
 
 When a meter is placed on a block that gets pushed by a piston, the meter moves
-too. This makes it possible to
+too. This makes it possible to use meters in mechanisms that move, like flying machines.
 
 ## Installation Instructions
 
@@ -39,7 +39,7 @@ scroll forwards and backwards through time by pressing the `Step Backward` and
 - Each meter gets its own row in the UI, showing the meter name and a summary of that meter's power level for the last 60 gameticks.
 - Each meter also has a corresponding 'highlight' showing which block the meter is monitoring. The color of the highlight matches the color of the corresponding row.
 - For pulses that last longer than 5 gameticks, the duration of the pulse is also shown textually. This number is the *number of gameticks for which the meter was powered at the start*.
-- When the meters are paused, the subtick ordering of any powering/unpowering events is shown to the right of the overview. Green and red rectangles correspond to the meter becoming powered or unpowered, respectively. 
+- When the meters are paused, the subtick ordering of any powering/unpowering events is shown to the right of the overview. Green and red rectangles correspond to the meter becoming powered or unpowered, respectively.
 
 ## Keybindings:
 
