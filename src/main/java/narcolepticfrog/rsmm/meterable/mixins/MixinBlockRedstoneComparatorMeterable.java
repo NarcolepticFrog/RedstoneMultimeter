@@ -13,7 +13,12 @@ public abstract class MixinBlockRedstoneComparatorMeterable implements Meterable
 
     @Override
     public boolean isPowered(IBlockState state, IBlockAccess source, BlockPos pos) {
-        return ((TileEntityComparator)source.getTileEntity(pos)).getOutputSignal() > 0;
+
+        if (state.getValue(BlockRedstoneComparator.MODE) == BlockRedstoneComparator.Mode.COMPARE) {
+            return state.getValue(BlockRedstoneComparator.POWERED);
+        } else {
+            return ((TileEntityComparator) source.getTileEntity(pos)).getOutputSignal() > 0;
+        }
     }
 
 }
