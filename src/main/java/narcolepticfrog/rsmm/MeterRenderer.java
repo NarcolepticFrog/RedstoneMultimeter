@@ -184,6 +184,13 @@ public class MeterRenderer {
                 } else if (m.wasPoweredDuring(t)) {
                     Gui.drawRect(left+2, top+1, right-1, bot-1, m.getColor());
                 }
+
+                if (m.movedDuring(t)) {
+                    int height = (top + bot) / 2;
+                    Gui.drawRect(left, height-1, right, height, m.getColor());
+                    Gui.drawRect(left, height, right, height+1, 0xFFFFFFFF);
+                    Gui.drawRect(left, height+1, right, height+2, m.getColor());
+                }
             }
         }
     }
@@ -252,6 +259,13 @@ public class MeterRenderer {
                     if (m.wasPoweredAt(time)) {
                         Gui.drawRect(left, top, right, bot, m.getColor());
                     }
+                }
+
+                if (m.movedAtTime(time)) {
+                    int height = (top+bot)/2;
+                    Gui.drawRect(left, height-1, right, height, m.getColor());
+                    Gui.drawRect(left, height, right, height+1, 0xFFFFFFFF);
+                    Gui.drawRect(left, height+1, right, height+2, m.getColor());
                 }
             }
 

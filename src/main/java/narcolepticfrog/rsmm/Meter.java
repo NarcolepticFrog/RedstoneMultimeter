@@ -17,6 +17,7 @@ public class Meter {
     private String name;
     private int color;
     private Trace<StateChange> stateChanges;
+    private Trace<SubtickTime> moveTimes;
     private World world;
     private BlockPos position;
 
@@ -25,6 +26,7 @@ public class Meter {
         this.world = world;
         this.name = name;
         this.stateChanges = new Trace<>(MAX_STATE_CHANGES);
+        this.moveTimes = new Trace<>(MAX_STATE_CHANGES);
         this.color = color;
         checkForUpdate();
     }
@@ -126,6 +128,26 @@ public class Meter {
         }
     }
 
+    /**
+     * Returns true if this meter moved at the given subtick time.
+     */
+    public boolean movedAtTime(SubtickTime t) {
+        int ix = moveTimes.binarySearch(t, x -> x);
+        if (ix == -1) {
+            return false;
+        }
+        return moveTimes.get(ix).equals(t);
+    }
+
+    public boolean movedDuring(int tick) {
+        SubtickTime lastTime = SubtickClock.getClock().lastTimeOfTick(tick-1);
+        int ix = moveTimes.binarySearch(lastTime, x -> x);
+        if (ix <= 0) {
+            return moveTimes.size() > 0 && moveTimes.get(moveTimes.size()-1).getTick() == tick;
+        }
+        return moveTimes.get(ix-1).getTick() == tick;
+    }
+
     public int getColor() {
         return color;
     }
@@ -135,6 +157,7 @@ public class Meter {
     }
 
     public void setPosition(BlockPos position) {
+        this.moveTimes.push(SubtickClock.getClock().takeNextTime());
         this.position = position;
     }
 
