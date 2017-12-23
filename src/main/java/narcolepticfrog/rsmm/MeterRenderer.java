@@ -249,16 +249,15 @@ public class MeterRenderer {
                 int left = totalWidth + SUBTICK_GAP + subtick*TICK_WIDTH;
                 int right = totalWidth + SUBTICK_GAP + (subtick + 1)*TICK_WIDTH;
 
-                if (stateChange != null) {
-                    if (stateChange.getState()) {
-                        Gui.drawRect(left, top, right, bot, 0xFF00FF00);
-                    } else {
-                        Gui.drawRect(left, top, right, bot, 0xFFFF0000);
-                    }
-                } else {
+                if (stateChange == null) {
                     if (m.wasPoweredAt(time)) {
                         Gui.drawRect(left, top, right, bot, m.getColor());
                     }
+                } else if (stateChange.getState()) {
+                    Gui.drawRect(left+2, top+1, right-1, bot-1, m.getColor());
+                } else {
+                    Gui.drawRect(left, top, right, bot, m.getColor());
+                    Gui.drawRect(left+2, top+1, right-1, bot-1, BACKGROUND_COLOR);
                 }
 
                 if (m.movedAtTime(time)) {
