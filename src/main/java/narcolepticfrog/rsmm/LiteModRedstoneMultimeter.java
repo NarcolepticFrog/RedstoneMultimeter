@@ -80,10 +80,12 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
                 mutex.lock();
                 try {
                     int dim = minecraft.player.dimension;
+                    // Holding control while placing the meter makes it immovable.
+                    boolean movable = !(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL));
                     World world = minecraft.getIntegratedServer().getWorld(dim);
                     // Note: We don't use minecraft.player.world because this is the client's version of the world
                     //       and it can be out of sync with the server's version of the world.
-                    meterManager.toggleMeter(r.getBlockPos(), world);
+                    meterManager.toggleMeter(r.getBlockPos(), world, movable);
                 } finally {
                     mutex.unlock();
                 }

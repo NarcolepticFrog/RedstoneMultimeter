@@ -20,15 +20,21 @@ public class Meter {
     private Trace<SubtickTime> moveTimes;
     private World world;
     private BlockPos position;
+    private boolean movable;
 
-    public Meter(BlockPos position, World world, String name, int color) {
+    public Meter(BlockPos position, World world, String name, int color, boolean movable) {
         this.position = position;
         this.world = world;
         this.name = name;
         this.stateChanges = new Trace<>(MAX_STATE_CHANGES);
         this.moveTimes = new Trace<>(MAX_STATE_CHANGES);
         this.color = color;
+        this.movable = movable;
         checkForUpdate();
+    }
+
+    public boolean isMovable() {
+        return movable;
     }
 
     public void checkForUpdate() {

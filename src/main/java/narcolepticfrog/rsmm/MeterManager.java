@@ -39,14 +39,14 @@ public class MeterManager {
     private Map<Location, Meter> location2meter = new HashMap<>();
     private int nameCounter = 0;
 
-    public void toggleMeter(BlockPos pos, World world) {
+    public void toggleMeter(BlockPos pos, World world, boolean movable) {
         Location l = new Location(world, pos);
         if (location2meter.containsKey(l)) {
             Meter m = location2meter.get(l);
             location2meter.remove(l);
             meters.remove(m);
         } else {
-            Meter m = new Meter(pos, world, I18n.format("redstonemultimeter.ui.metername", nameCounter++), RandomColors.randomColor());
+            Meter m = new Meter(pos, world, I18n.format("redstonemultimeter.ui.metername", nameCounter++), RandomColors.randomColor(), movable);
             location2meter.put(l, m);
             meters.add(m);
         }
@@ -66,10 +66,12 @@ public class MeterManager {
         Location l = new Location(w, pos);
         if (location2meter.containsKey(l)) {
             Meter m = location2meter.get(l);
-            BlockPos newPos = pos.offset(direction);
-            m.setPosition(newPos);
-            location2meter.remove(l);
-            location2meter.put(new Location(w, newPos), m);
+            if (m.isMovable()) {
+                BlockPos newPos = pos.offset(direction);
+                m.setPosition(newPos);
+                location2meter.remove(l);
+                location2meter.put(new Location(w, newPos), m);
+            }
         }
     }
 
