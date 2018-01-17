@@ -88,6 +88,9 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
 
     @Override
     public void onTick(Minecraft minecraft, float partialTicks, boolean inGame, boolean clock) {
+        if (!minecraft.isIntegratedServerRunning()) {
+            return;
+        }
         if (toggleMeterKey.isPressed()) {
             RayTraceResult r = minecraft.objectMouseOver;
             if (r.typeOfHit == RayTraceResult.Type.BLOCK) {
@@ -146,6 +149,9 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
 
     @Override
     public void onPostRenderHUD(int screenWidth, int screenHeight) {
+        if (!Minecraft.getMinecraft().isIntegratedServerRunning()) {
+            return;
+        }
         mutex.lock();
         try {
             if (!metersPaused) {
@@ -163,6 +169,9 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
 
     @Override
     public void onPostRender(float partialTicks) {
+        if (!Minecraft.getMinecraft().isIntegratedServerRunning()) {
+            return;
+        }
         mutex.lock();
         try {
             renderer.renderMeterHighlights(meterManager.getMeters(), partialTicks);
