@@ -5,6 +5,7 @@
   "mixins": [
     "MixinBlockAirMeterable",
     "MixinBlockButtonMeterable",
+    "MixinBlockDispenserMeterable",
     "MixinBlockLeverMeterable",
     "MixinBlockMeterable",
     "MixinBlockObserverMeterable",
