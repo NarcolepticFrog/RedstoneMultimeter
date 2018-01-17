@@ -63,6 +63,20 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
         }
     }
 
+    public void recolorMeter(int ix, int color) {
+        List<Meter> meters = meterManager.getMeters();
+        if (0 <= ix && ix < meters.size()) {
+            meters.get(ix).setColor(color);
+        }
+    }
+
+    public void recolorLastMeter(int color) {
+        List<Meter> meters = meterManager.getMeters();
+        if (meters.size() > 0) {
+            meters.get(meters.size() - 1).setColor(color);
+        }
+    }
+
     public void removeAll() {
         mutex.lock();
         try {

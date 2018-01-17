@@ -50,6 +50,20 @@ public class MeterCommand extends CommandBase {
             } else {
                 throw new WrongUsageException(USAGE);
             }
+        } else if (args[0].equals("color")) {
+            if (modInstance.getNumMeters() <= 0) {
+                throw new CommandException("redstonemultimeter.command.meter.recolor.noMeters", new TextComponentKeybind("key.redstonemultimeter.toggle"));
+            }
+            if (args.length == 2) {
+                modInstance.recolorLastMeter(ColorUtils.parseColor(args[1]));
+                notifyCommandListener(sender, this, "redstonemultimeter.command.meter.recolor.last", args[1]);
+            } else if (args.length == 3) {
+                int ix = parseInt(args[1], 0, modInstance.getNumMeters() - 1);
+                modInstance.recolorMeter(ix, ColorUtils.parseColor(args[2]));
+                notifyCommandListener(sender, this, "redstonemultimeter.command.meter.recolor.index", ix, args[2]);
+            } else {
+                throw new WrongUsageException(USAGE);
+            }
         } else if (args[0].equals("removeAll")) {
             if (args.length != 1) {
                 throw new WrongUsageException(USAGE);
@@ -72,7 +86,7 @@ public class MeterCommand extends CommandBase {
     public List<String> getTabCompletions(MinecraftServer server,
             ICommandSender sender, String[] args, BlockPos targetPos) {
         if (args.length == 1) {
-            return getListOfStringsMatchingLastWord(args, "name", "removeAll", "duration");
+            return getListOfStringsMatchingLastWord(args, "name", "color", "removeAll", "duration");
         } else {
             return Collections.<String>emptyList();
         }

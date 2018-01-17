@@ -158,6 +158,10 @@ public class Meter {
         return color;
     }
 
+    public void setColor(int color) {
+        this.color = color;
+    }
+
     public BlockPos getPosition() {
         return position;
     }
