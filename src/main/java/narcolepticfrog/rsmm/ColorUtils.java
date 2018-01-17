@@ -27,7 +27,6 @@ public class ColorUtils {
             int r = Integer.valueOf(str.substring(str.length() - 6, str.length() - 4), 16);
             int g = Integer.valueOf(str.substring(str.length() - 4, str.length() - 2), 16);
             int b = Integer.valueOf(str.substring(str.length() - 2), 16);
-            System.out.println(r + ", " + g + ", " + b);
             return 0xFF << 24 | (r << 16) | (g << 8) | b;
         } catch (Exception e) {
             return 0;
