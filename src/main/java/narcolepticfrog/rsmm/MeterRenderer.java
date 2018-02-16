@@ -82,7 +82,7 @@ public class MeterRenderer {
 
                 AxisAlignedBB aabb = Block.FULL_BLOCK_AABB.offset(m.getPosition()).offset(-dx, -dy, -dz).grow(0.002);
                 RenderGlobal.renderFilledBox(aabb, r, g, b, 0.5F);
-                if (!m.isMovable()) {
+                if (m.isMovable()) {
                     RenderGlobal.drawBoundingBox(aabb.minX, aabb.minY, aabb.minZ,
                             aabb.maxX, aabb.maxY, aabb.maxZ,
                             r, g, b, 1);
