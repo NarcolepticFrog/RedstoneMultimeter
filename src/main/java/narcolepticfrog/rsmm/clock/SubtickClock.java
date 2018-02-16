@@ -4,7 +4,7 @@ import narcolepticfrog.rsmm.util.Trace;
 
 public class SubtickClock {
 
-    public static final int HISTORY_LENGTH = 10000;
+    public static final int HISTORY_LENGTH = 100000;
 
     private int tick;
     private int subtickIndex;
