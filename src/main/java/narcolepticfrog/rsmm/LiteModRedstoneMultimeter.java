@@ -1,9 +1,6 @@
 package narcolepticfrog.rsmm;
 
-import com.mumfrey.liteloader.HUDRenderListener;
-import com.mumfrey.liteloader.PostRenderListener;
-import com.mumfrey.liteloader.ServerCommandProvider;
-import com.mumfrey.liteloader.Tickable;
+import com.mumfrey.liteloader.*;
 import com.mumfrey.liteloader.core.LiteLoader;
 import narcolepticfrog.rsmm.clock.SubtickClock;
 import narcolepticfrog.rsmm.events.PistonPushEventDispatcher;
@@ -11,6 +8,7 @@ import narcolepticfrog.rsmm.events.PistonPushListener;
 import narcolepticfrog.rsmm.events.StateChangeEventDispatcher;
 import narcolepticfrog.rsmm.events.StateChangeListener;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.command.ServerCommandManager;
 import net.minecraft.util.EnumFacing;
@@ -24,7 +22,7 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, PostRenderListener,
+public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, PostRenderListener, PreRenderListener,
         ServerCommandProvider, PistonPushListener, StateChangeListener {
 
     private static KeyBinding toggleMeterKey = new KeyBinding("key.redstonemultimeter.toggle", Keyboard.KEY_M, "key.categories.redstonemultimeter");
@@ -168,7 +166,7 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     }
 
     @Override
-    public void onPostRender(float partialTicks) {
+    public void onPostRenderEntities(float partialTicks) {
         if (!Minecraft.getMinecraft().isIntegratedServerRunning()) {
             return;
         }
@@ -213,11 +211,36 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     }
 
     @Override
-    public void onPostRenderEntities(float partialTicks) {
+    public void onPostRender(float partialTicks) {
+
     }
 
     @Override
     public void onPreRenderHUD(int screenWidth, int screenHeight) {
     }
 
+    @Override
+    public void onRenderWorld(float partialTicks) {
+
+    }
+
+    @Override
+    public void onSetupCameraTransform(float partialTicks, int pass, long timeSlice) {
+
+    }
+
+    @Override
+    public void onRenderSky(float partialTicks, int pass) {
+
+    }
+
+    @Override
+    public void onRenderClouds(float partialTicks, int pass, RenderGlobal renderGlobal) {
+
+    }
+
+    @Override
+    public void onRenderTerrain(float partialTicks, int pass) {
+
+    }
 }
