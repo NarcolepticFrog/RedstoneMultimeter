@@ -46,7 +46,7 @@ public class MeterManager {
             location2meter.remove(l);
             meters.remove(m);
         } else {
-            Meter m = new Meter(pos, world, I18n.format("redstonemultimeter.ui.metername", nameCounter++), ColorUtils.randomColor(), movable);
+            Meter m = new Meter(pos, world, I18n.format("redstonemultimeter.ui.metername", nameCounter++), ColorUtils.nextColor(), movable);
             location2meter.put(l, m);
             meters.add(m);
         }
