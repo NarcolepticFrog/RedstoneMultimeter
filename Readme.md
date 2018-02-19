@@ -40,17 +40,20 @@ scroll forwards and backwards through time by pressing the `Step Backward` and
 - Each meter also has a corresponding 'highlight' showing which block the meter is monitoring. The color of the highlight matches the color of the corresponding row.
 - For pulses that last longer than 5 gameticks, the duration of the pulse is also shown textually. This number is the *number of gameticks for which the meter was powered at the start*.
 - When the meters are paused, the subtick ordering of any powering/unpowering events is shown to the right of the overview. Green and red rectangles correspond to the meter becoming powered or unpowered, respectively.
+- If the meter is pushed by a piston, a horizontal line is drawn in the overlay to show that the block moved.
 
 ## Keybindings:
 
 - `Toggle Meter` Adds or removes a meter at the block the player is looking at.
 - `Pause Meters` Pauses the meters for easy inspection.
-- `Step Forward` While paused, move the display 10 ticks ahead in time.
-- `Step Backward` While paused, move the display 10 ticks back in time.
+- `Step Forward` While paused, move the display 1 tick ahead in time. Holding ctrl moves 10 ticks.
+- `Step Backward` While paused, move the display 1 tick back in time. Holding ctrl moves 10 ticks.
 
 ## Available Commands:
 
 - `/meter name <name>` renames the most recently placed meter.
 - `/meter name <i> <name>` renames the `i`th meter (starting from 0 at the top).
+- `/meter color <#RRGGBB>` changes the color of the most recently placed meter.
+- `/meter color <i> <#RRGGBB>` changes the color of the `i`th meter (starting from 0 at the top).
 - `/meter removeAll` removes all meters from the world.
 - `/meter duration <duration>` sets the number of ticks shown on the overlay.
