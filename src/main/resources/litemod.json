@@ -5,6 +5,7 @@
   "mixinConfigs": [
     "mixins.rsmm.meterable.json",
     "mixins.rsmm.events.json",
-    "mixins.rsmm.clock.json"
+    "mixins.rsmm.clock.json",
+    "mixins.rsmm.server.json"
   ]
 }

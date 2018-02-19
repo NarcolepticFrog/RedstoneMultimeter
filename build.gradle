@@ -55,6 +55,7 @@ litemod {
         mixinConfigs += "mixins.rsmm.meterable.json"
         mixinConfigs += "mixins.rsmm.events.json"
         mixinConfigs += "mixins.rsmm.clock.json"
+        mixinConfigs += "mixins.rsmm.server.json"
     }
 }
 
