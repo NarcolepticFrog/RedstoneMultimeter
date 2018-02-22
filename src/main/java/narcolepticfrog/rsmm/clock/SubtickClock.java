@@ -1,33 +1,36 @@
 package narcolepticfrog.rsmm.clock;
 
+import narcolepticfrog.rsmm.events.TickStartEventDispatcher;
+import narcolepticfrog.rsmm.events.TickStartListener;
 import narcolepticfrog.rsmm.util.Trace;
 
-public class SubtickClock {
+public class SubtickClock implements TickStartListener {
 
     public static final int HISTORY_LENGTH = 100000;
 
-    private int tick;
+    private int tick = -1;
     private int subtickIndex;
     private Trace<Integer> tickLengths = new Trace<>(HISTORY_LENGTH);
 
     /**
      * Returns the next SubtickTime for the current tick.
      */
-    public synchronized SubtickTime takeNextTime() {
+    public SubtickTime takeNextTime() {
         return new SubtickTime(tick, subtickIndex++);
     }
 
     /**
      * Returns the current tick.
      */
-    public synchronized int getTick() {
+    public int getTick() {
         return tick;
     }
 
     /**
      * Should be called at the start of every tick.
      */
-    public synchronized void startTick(int tick) {
+    @Override
+    public void onTickStart(int tick) {
         this.tick = tick;
         tickLengths.push(subtickIndex);
         subtickIndex = 0;
@@ -36,7 +39,7 @@ public class SubtickClock {
     /**
      * Returns the number of SubtickTimes used during the given tick.
      */
-    public synchronized int tickLength(int tick) {
+    public int tickLength(int tick) {
         int ix = this.tick - 1 - tick;
         if (0 <= ix && ix < tickLengths.size()) {
             return tickLengths.get(ix);
@@ -62,9 +65,13 @@ public class SubtickClock {
 
     private SubtickClock() {}
 
-    private static SubtickClock singleton = new SubtickClock();
+    private static SubtickClock singleton = null;
 
     public static SubtickClock getClock() {
+        if (singleton == null) {
+            singleton = new SubtickClock();
+            TickStartEventDispatcher.addListener(singleton);
+        }
         return singleton;
     }
 

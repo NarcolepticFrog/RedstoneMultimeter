@@ -5,6 +5,7 @@
   "mixins": [
     "MixinBlockPistonBase",
     "MixinChunk",
+    "MixinMinecraftServer",
     "MixinWorld"
   ]
 }

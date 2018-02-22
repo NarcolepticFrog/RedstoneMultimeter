@@ -54,7 +54,6 @@ litemod {
         description = "A tool for debugging redstone builds."
         mixinConfigs += "mixins.rsmm.meterable.json"
         mixinConfigs += "mixins.rsmm.events.json"
-        mixinConfigs += "mixins.rsmm.clock.json"
         mixinConfigs += "mixins.rsmm.server.json"
     }
 }

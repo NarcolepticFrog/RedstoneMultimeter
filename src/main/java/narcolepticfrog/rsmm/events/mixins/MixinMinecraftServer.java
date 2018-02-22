@@ -1,7 +1,7 @@
-package narcolepticfrog.rsmm.clock.mixins;
+package narcolepticfrog.rsmm.events.mixins;
 
 
-import narcolepticfrog.rsmm.clock.SubtickClock;
+import narcolepticfrog.rsmm.events.TickStartEventDispatcher;
 import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -17,7 +17,7 @@ public abstract class MixinMinecraftServer {
 
     @Inject(method = "updateTimeLightAndEntities()V", at = @At("HEAD"))
     private void onServerTick(CallbackInfo ci) {
-        SubtickClock.getClock().startTick(getTickCounter());
+        TickStartEventDispatcher.dispatchEvent(getTickCounter());
     }
 
 }
