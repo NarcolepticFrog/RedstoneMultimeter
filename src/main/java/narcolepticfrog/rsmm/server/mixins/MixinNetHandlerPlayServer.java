@@ -27,7 +27,7 @@ public abstract class MixinNetHandlerPlayServer {
 
     @Shadow public EntityPlayerMP player;
 
-    @Inject(method = "processCustomPayload", at = @At("HEAD"))
+    @Inject(method = "processCustomPayload", at = @At("RETURN"))
     public void onProcessCustomPayload(CPacketCustomPayload packetIn, CallbackInfo cb) {
         String channelName = packetIn.getChannelName();
         PacketBuffer data = packetIn.getBufferData();
