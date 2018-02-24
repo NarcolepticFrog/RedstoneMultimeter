@@ -1,5 +1,6 @@
 package narcolepticfrog.rsmm;
 
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -35,5 +36,20 @@ public class DimPos {
             return o.dim == this.dim && o.pos.equals(this.pos);
         }
         return false;
+    }
+
+    public void writeToBuffer(PacketBuffer buffer) {
+        buffer.writeInt(dim);
+        buffer.writeInt(pos.getX());
+        buffer.writeInt(pos.getY());
+        buffer.writeInt(pos.getZ());
+    }
+
+    public static DimPos readFromBuffer(PacketBuffer buffer) {
+        int dim = buffer.readInt();
+        int x = buffer.readInt();
+        int y = buffer.readInt();
+        int z = buffer.readInt();
+        return new DimPos(dim, new BlockPos(x,y,z));
     }
 }
