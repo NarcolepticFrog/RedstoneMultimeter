@@ -50,8 +50,7 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
                 boolean movable = !(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL));
                 DimPos dimpos = new DimPos(dim, r.getBlockPos());
                 RSMMSPacketToggleMeter packet = new RSMMSPacketToggleMeter(dimpos, movable);
-                ClientPluginChannelsClient.sendMessage("RSMM", packet.toBuffer(), PluginChannels
-                        .ChannelPolicy.DISPATCH_IF_REGISTERED);
+                ClientPluginChannelsClient.sendMessage("RSMM", packet.toBuffer(), PluginChannels.ChannelPolicy.DISPATCH_IF_REGISTERED);
             }
         }
         if (pauseMetersKey.isPressed()) {
@@ -157,13 +156,13 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     public void upgradeSettings(String version, File configPath, File oldConfigPath) {}
 
     @Override
-    public void onPostRender(float partialTicks) {}
+    public void onPostRender(float partialTicks) { }
 
     @Override
     public void onPreRenderHUD(int screenWidth, int screenHeight) {}
 
     @Override
-    public void onRenderWorld(float partialTicks) {}
+    public void onRenderWorld(float partialTicks) { }
 
     @Override
     public void onSetupCameraTransform(float partialTicks, int pass, long timeSlice) {}
@@ -175,7 +174,7 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     public void onRenderClouds(float partialTicks, int pass, RenderGlobal renderGlobal) {}
 
     @Override
-    public void onRenderTerrain(float partialTicks, int pass) {}
+    public void onRenderTerrain(float partialTicks, int pass) { }
 
 
 }
