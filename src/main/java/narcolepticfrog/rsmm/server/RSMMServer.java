@@ -86,16 +86,9 @@ public class RSMMServer implements StateChangeListener, PistonPushListener, Tick
         return meterGroups.keySet();
     }
 
-    /**
-     * A reference to the minecraft server.
-     */
-    private MinecraftServer minecraftServer;
 
     public MinecraftServer getMinecraftServer() {
-        if (minecraftServer == null) {
-            minecraftServer = Minecraft.getMinecraft().getIntegratedServer();
-        }
-        return minecraftServer;
+        return Minecraft.getMinecraft().getIntegratedServer();
     }
 
     /**
