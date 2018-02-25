@@ -6,6 +6,7 @@
     "MixinBlockPistonBase",
     "MixinChunk",
     "MixinMinecraftServer",
+    "MixinPlayerList",
     "MixinWorld"
   ]
 }

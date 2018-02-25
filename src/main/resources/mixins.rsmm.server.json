@@ -4,7 +4,6 @@
   "refmap": "mixins.rsmm.refmap.json",
   "mixins": [
     "MixinEntityPlayerMP",
-    "MixinNetHandlerPlayServer",
-    "MixinPlayerList"
+    "MixinNetHandlerPlayServer"
   ]
 }

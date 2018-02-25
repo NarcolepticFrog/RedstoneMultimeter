@@ -1,6 +1,7 @@
-package narcolepticfrog.rsmm.server.mixins;
+package narcolepticfrog.rsmm.events.mixins;
 
 import io.netty.buffer.Unpooled;
+import narcolepticfrog.rsmm.events.PlayerConnectionEventDispatcher;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.PacketBuffer;
@@ -16,12 +17,9 @@ import java.nio.charset.StandardCharsets;
 @Mixin(PlayerList.class)
 public abstract class MixinPlayerList {
 
-    @Inject(method = "initializeConnectionToPlayer", at = @At("RETURN"))
-    public void onInitializeConnectionToPlayer(NetworkManager netManager, EntityPlayerMP playerIn, CallbackInfo cb) {
-        // Register the RSMM channel with the client.
-        String channelName = "RSMM";
-        playerIn.connection.sendPacket(new SPacketCustomPayload("REGISTER",
-                new PacketBuffer(Unpooled.wrappedBuffer(channelName.getBytes(StandardCharsets.UTF_8)))));
+    @Inject(method="playerLoggedIn", at = @At("RETURN"))
+    public void onPlayerLoggedIn(EntityPlayerMP player, CallbackInfo cb) {
+        PlayerConnectionEventDispatcher.dispatchPlayerConnectEvent(player);
     }
 
 }
