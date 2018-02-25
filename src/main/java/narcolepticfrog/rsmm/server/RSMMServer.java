@@ -23,7 +23,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class RSMMServer implements StateChangeListener, PistonPushListener, TickStartListener,
-        PlayerConnectionEventListener, ServerPacketEventListener, RSMMSPacketHandler {
+        PlayerConnectionListener, ServerPacketListener, RSMMSPacketHandler {
+
+    public RSMMServer() {
+        StateChangeEventDispatcher.addListener(this);
+        PistonPushEventDispatcher.addListener(this);
+        TickStartEventDispatcher.addListener(this);
+        PlayerConnectionEventDispatcher.addListener(this);
+        ServerPacketEventDispatcher.addListener(this);
+    }
 
     private MinecraftServer minecraftServer;
 

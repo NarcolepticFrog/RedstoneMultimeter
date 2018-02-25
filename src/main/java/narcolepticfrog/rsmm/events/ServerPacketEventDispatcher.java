@@ -9,14 +9,14 @@ public class ServerPacketEventDispatcher {
 
     private ServerPacketEventDispatcher() {}
 
-    private static List<ServerPacketEventListener> listeners = new ArrayList<>();
+    private static List<ServerPacketListener> listeners = new ArrayList<>();
 
-    public static void addListener(ServerPacketEventListener listener) {
+    public static void addListener(ServerPacketListener listener) {
         listeners.add(listener);
     }
 
     public static void dispatchCustomPayload(String channel, PacketBuffer data) {
-        for (ServerPacketEventListener listener : listeners) {
+        for (ServerPacketListener listener : listeners) {
             listener.onCustomPayload(channel, data);
         }
     }

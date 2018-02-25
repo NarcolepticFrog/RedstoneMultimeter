@@ -9,14 +9,14 @@ public class PlayerConnectionEventDispatcher {
 
     private PlayerConnectionEventDispatcher() {}
 
-    private static List<PlayerConnectionEventListener> listeners = new ArrayList<>();
+    private static List<PlayerConnectionListener> listeners = new ArrayList<>();
 
-    public static void addListener(PlayerConnectionEventListener listener) {
+    public static void addListener(PlayerConnectionListener listener) {
         listeners.add(listener);
     }
 
     public static void dispatchPlayerConnectEvent(EntityPlayerMP player) {
-        for (PlayerConnectionEventListener listener : listeners) {
+        for (PlayerConnectionListener listener : listeners) {
             listener.onPlayerConnect(player);
         }
     }
