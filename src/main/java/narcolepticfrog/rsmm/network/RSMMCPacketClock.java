@@ -1,7 +1,6 @@
 package narcolepticfrog.rsmm.network;
 
 import io.netty.buffer.Unpooled;
-import narcolepticfrog.rsmm.DimPos;
 import net.minecraft.network.PacketBuffer;
 
 /**

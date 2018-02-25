@@ -1,7 +1,5 @@
 package narcolepticfrog.rsmm;
 
-import com.google.common.collect.Lists;
-import narcolepticfrog.rsmm.server.MeterGroup;
 import narcolepticfrog.rsmm.server.RSMMServer;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;

@@ -2,11 +2,7 @@ package narcolepticfrog.rsmm;
 
 import narcolepticfrog.rsmm.clock.SubtickClock;
 import narcolepticfrog.rsmm.clock.SubtickTime;
-import narcolepticfrog.rsmm.meterable.Meterable;
 import narcolepticfrog.rsmm.util.Trace;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 
 import java.util.function.Consumer;
 

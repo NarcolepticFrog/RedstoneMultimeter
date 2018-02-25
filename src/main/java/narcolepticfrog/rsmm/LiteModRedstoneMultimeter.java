@@ -7,15 +7,12 @@ import com.mumfrey.liteloader.core.LiteLoader;
 import com.mumfrey.liteloader.core.PluginChannels;
 import narcolepticfrog.rsmm.clock.SubtickClock;
 import narcolepticfrog.rsmm.network.*;
-import narcolepticfrog.rsmm.server.MeterGroup;
 import narcolepticfrog.rsmm.server.RSMMServer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.command.ServerCommandManager;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.network.login.INetHandlerLoginClient;
-import net.minecraft.network.login.server.SPacketLoginSuccess;
 import net.minecraft.util.math.RayTraceResult;
 import org.lwjgl.input.Keyboard;
 

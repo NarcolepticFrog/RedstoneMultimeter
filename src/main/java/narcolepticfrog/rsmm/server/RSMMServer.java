@@ -79,6 +79,9 @@ public class RSMMServer implements StateChangeListener, PistonPushListener, Tick
         return meterGroups.get(groupName);
     }
 
+    /**
+     * Returns the names of the current groups in order of creation time.
+     */
     public Set<String> getGroupNames() {
         return meterGroups.keySet();
     }
@@ -233,7 +236,5 @@ public class RSMMServer implements StateChangeListener, PistonPushListener, Tick
 
     @Override
     public void onChannelUnregister(EntityPlayerMP sender, List<String> channels) {}
-
-
 
 }

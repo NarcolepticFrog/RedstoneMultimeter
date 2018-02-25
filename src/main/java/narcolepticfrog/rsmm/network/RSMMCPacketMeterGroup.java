@@ -1,11 +1,7 @@
 package narcolepticfrog.rsmm.network;
 
 import io.netty.buffer.Unpooled;
-import narcolepticfrog.rsmm.DimPos;
-import narcolepticfrog.rsmm.clock.SubtickTime;
 import net.minecraft.network.PacketBuffer;
-
-import java.util.BitSet;
 
 public class RSMMCPacketMeterGroup extends RSMMCPacket {
 

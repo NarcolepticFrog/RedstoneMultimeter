@@ -1,6 +1,5 @@
 package narcolepticfrog.rsmm.events;
 
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.PacketBuffer;
 

@@ -1,7 +1,5 @@
 package narcolepticfrog.rsmm.clock;
 
-import narcolepticfrog.rsmm.events.TickStartEventDispatcher;
-import narcolepticfrog.rsmm.events.TickStartListener;
 import narcolepticfrog.rsmm.util.Trace;
 
 public class SubtickClock {

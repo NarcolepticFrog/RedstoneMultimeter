@@ -1,6 +1,5 @@
 package narcolepticfrog.rsmm.server;
 
-import io.netty.buffer.Unpooled;
 import narcolepticfrog.rsmm.ColorUtils;
 import narcolepticfrog.rsmm.DimPos;
 import narcolepticfrog.rsmm.clock.SubtickTime;
@@ -9,13 +8,10 @@ import narcolepticfrog.rsmm.network.*;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.network.play.server.SPacketCustomPayload;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,10 +19,25 @@ import java.util.UUID;
 
 public class MeterGroup implements RSMMSPacketHandler {
 
+    /**
+     * The name of this meter group
+     */
     private String name;
+
+    /**
+     * A reference to the RSMMServer
+     */
     private RSMMServer server;
+
+    /**
+     * A hash set containing the UUIDs of players currently subscribed to this meter group.
+     * Only contains online players.
+     */
     private HashSet<UUID> subscribedPlayers = new HashSet<>();
 
+    /**
+     * Constructs a new MeterGroup with the given server and name.
+     */
     public MeterGroup(RSMMServer server, String name) {
         this.server = server;
         this.name = name;
@@ -36,10 +47,16 @@ public class MeterGroup implements RSMMSPacketHandler {
         return name;
     }
 
+    /**
+     * Returns the number of online players subscribed to this meter group.
+     */
     public int getNumPlayers() {
         return subscribedPlayers.size();
     }
 
+    /**
+     * Gets the {@code EntityPlayerMP} instance from their uuid.
+     */
     public EntityPlayerMP getPlayerFromUUID(UUID uuid) {
         Entity playerEntity = server.getMinecraftServer().getEntityFromUuid(uuid);
         if (playerEntity != null && playerEntity instanceof EntityPlayerMP) {
@@ -48,10 +65,16 @@ public class MeterGroup implements RSMMSPacketHandler {
         return null;
     }
 
+    /**
+     * Adds the given player to this meter group.
+     */
     public void addPlayer(EntityPlayerMP player) {
         addPlayer(player.getUniqueID());
     }
 
+    /**
+     * Adds the player with the given uuid to this meter group.
+     */
     public void addPlayer(UUID playerUUID) {
         subscribedPlayers.add(playerUUID);
         EntityPlayerMP player = getPlayerFromUUID(playerUUID);
@@ -70,10 +93,16 @@ public class MeterGroup implements RSMMSPacketHandler {
         }
     }
 
+    /**
+     * Removes the given player from this meter group.
+     */
     public void removePlayer(EntityPlayerMP player) {
         removePlayer(player.getUniqueID());
     }
 
+    /**
+     * Removes the player with the given uuid from this meter group.
+     */
     public void removePlayer(UUID playerUUID) {
         subscribedPlayers.remove(playerUUID);
     }
@@ -87,13 +116,28 @@ public class MeterGroup implements RSMMSPacketHandler {
         }
     }
 
+    /* ----- Meter Group Clock ----- */
+
+    /**
+     * The current tick.
+     */
     private int currentTick = -1;
+
+    /**
+     * The current subtickIndex. This is incremented each time a recorded event occurs.
+     */
     private int subtickIndex = 0;
 
+    /**
+     * Returns the next {@code SubtickTime} for the current meter group.
+     */
     private SubtickTime takeNextTime() {
         return new SubtickTime(currentTick, subtickIndex++);
     }
 
+    /**
+     * Should be called at the start of each tick. Broadcasts a Clock packet to all subscribed players.
+     */
     public void onTickStart(int tick) {
         RSMMCPacketClock packet = new RSMMCPacketClock(tick, subtickIndex);
         broadcastToSubscribers(packet);
@@ -117,6 +161,9 @@ public class MeterGroup implements RSMMSPacketHandler {
     private ArrayList<Meter> meters = new ArrayList<>();
     private HashMap<DimPos, Integer> dimpos2index = new HashMap<>();
 
+    /**
+     * Returns the number of meters in this meter group.
+     */
     public int getNumMeters() {
         return meters.size();
     }
