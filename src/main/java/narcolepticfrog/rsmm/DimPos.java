@@ -1,6 +1,7 @@
 package narcolepticfrog.rsmm;
 
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -15,6 +16,18 @@ public class DimPos {
     public DimPos(int dim, BlockPos pos) {
         this.dim = dim;
         this.pos = pos;
+    }
+
+    public int getDim() {
+        return dim;
+    }
+
+    public BlockPos getPos() {
+        return pos;
+    }
+
+    public DimPos offset(EnumFacing direction) {
+        return new DimPos(dim, pos.offset(direction));
     }
 
     @Override
