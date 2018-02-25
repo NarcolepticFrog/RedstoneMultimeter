@@ -1,5 +1,6 @@
 package narcolepticfrog.rsmm;
 
+import com.google.common.collect.Lists;
 import narcolepticfrog.rsmm.server.MeterGroup;
 import narcolepticfrog.rsmm.server.RSMMServer;
 import net.minecraft.command.CommandBase;
@@ -10,6 +11,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentKeybind;
+import net.minecraft.util.text.TextComponentString;
 
 import java.util.Collections;
 import java.util.List;
@@ -85,6 +87,14 @@ public class MeterCommand extends CommandBase {
             rsmmServer.changePlayerSubscription(player, args[1]);
             notifyCommandListener(sender, this, "redstonemultimeter.command.meter.subscribed",
                     args[1]);
+        } else if (args[0].equals("listGroups")) {
+
+            TextComponentString response = new TextComponentString("Meter Groups:");
+            for (String name : rsmmServer.getGroupNames()) {
+                response.appendText("\n  " + name);
+            }
+            sender.sendMessage(response);
+
         } else {
             throw new WrongUsageException(USAGE);
         }
@@ -94,7 +104,9 @@ public class MeterCommand extends CommandBase {
     public List<String> getTabCompletions(MinecraftServer server,
             ICommandSender sender, String[] args, BlockPos targetPos) {
         if (args.length == 1) {
-            return getListOfStringsMatchingLastWord(args, "name", "color", "removeAll", "duration");
+            return getListOfStringsMatchingLastWord(args, "name", "color", "removeAll", "group", "listGroups");
+        } else if (args.length == 2 && args[0].equals("group")) {
+            return getListOfStringsMatchingLastWord(args, rsmmServer.getGroupNames());
         } else {
             return Collections.<String>emptyList();
         }

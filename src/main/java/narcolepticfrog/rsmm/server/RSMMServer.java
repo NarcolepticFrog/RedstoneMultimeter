@@ -14,9 +14,7 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * This is the main server-side class for the redstone multimeter mod. It is responsible for handling
@@ -37,7 +35,7 @@ public class RSMMServer implements StateChangeListener, PistonPushListener, Tick
     /**
      * Maps a meter group name to the corresponding {@code MeterGroup} instance.
      */
-    private HashMap<String, MeterGroup> meterGroups = new HashMap<>();
+    private LinkedHashMap<String, MeterGroup> meterGroups = new LinkedHashMap<>();
 
     /**
      * Maps player UUIDs to the name of the {@code MeterGroup} they are subscribed to.
@@ -79,6 +77,10 @@ public class RSMMServer implements StateChangeListener, PistonPushListener, Tick
             return null;
         }
         return meterGroups.get(groupName);
+    }
+
+    public Set<String> getGroupNames() {
+        return meterGroups.keySet();
     }
 
     /**
