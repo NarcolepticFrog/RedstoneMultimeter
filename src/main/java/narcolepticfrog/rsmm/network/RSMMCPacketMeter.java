@@ -153,7 +153,7 @@ public class RSMMCPacketMeter extends RSMMCPacket {
     @Override
     public PacketBuffer toBuffer() {
         PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
-        buffer.writeByteArray(fields.toByteArray());
+        buffer.writeByte(MESSAGE_ID);
         buffer.writeByte(fields.toByteArray()[0]);
 
         if (fields.get(METER_ID)) buffer.writeInt(meterId);

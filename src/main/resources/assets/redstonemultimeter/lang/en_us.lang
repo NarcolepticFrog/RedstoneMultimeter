@@ -8,7 +8,7 @@ key.redstonemultimeter.pause=Pause Meters
 key.redstonemultimeter.forward=Step Forward
 key.redstonemultimeter.back=Step Backward
 # Commands
-redstonemultimeter.command.meter.usage=/meter name [idx] <name> OR /meter color [idx] <color> OR /meter removeAll OR /meter duration <ticks>
+redstonemultimeter.command.meter.usage=/meter name [idx] <name> OR /meter color [idx] <color> OR /meter removeAll
 redstonemultimeter.command.meter.rename.last=Renamed meter to %s.
 redstonemultimeter.command.meter.rename.index=Renamed meter %d to %s.
 redstonemultimeter.command.meter.recolor.last=Recolored meter to %d.

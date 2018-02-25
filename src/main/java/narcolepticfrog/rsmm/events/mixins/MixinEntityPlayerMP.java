@@ -1,4 +1,4 @@
-package narcolepticfrog.rsmm.server.mixins;
+package narcolepticfrog.rsmm.events.mixins;
 
 import com.google.common.collect.ImmutableSet;
 import io.netty.buffer.Unpooled;

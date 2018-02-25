@@ -5,6 +5,7 @@
   "mixins": [
     "MixinBlockPistonBase",
     "MixinChunk",
+    "MixinEntityPlayerMP",
     "MixinMinecraftServer",
     "MixinNetHandlerPlayServer",
     "MixinPlayerList",

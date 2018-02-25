@@ -1,16 +1,25 @@
 package narcolepticfrog.rsmm;
 
+import com.google.common.collect.ImmutableList;
 import com.mumfrey.liteloader.*;
+import com.mumfrey.liteloader.client.ClientPluginChannelsClient;
+import com.mumfrey.liteloader.core.ClientPluginChannels;
 import com.mumfrey.liteloader.core.LiteLoader;
+import com.mumfrey.liteloader.core.PluginChannels;
 import narcolepticfrog.rsmm.clock.SubtickClock;
 import narcolepticfrog.rsmm.events.PistonPushEventDispatcher;
 import narcolepticfrog.rsmm.events.PistonPushListener;
 import narcolepticfrog.rsmm.events.StateChangeEventDispatcher;
 import narcolepticfrog.rsmm.events.StateChangeListener;
+import narcolepticfrog.rsmm.network.*;
+import narcolepticfrog.rsmm.server.RSMMServer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.command.ServerCommandManager;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.login.INetHandlerLoginClient;
+import net.minecraft.network.login.server.SPacketLoginSuccess;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
@@ -18,23 +27,24 @@ import net.minecraft.world.World;
 import org.lwjgl.input.Keyboard;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, PostRenderListener, PreRenderListener,
-        ServerCommandProvider, PistonPushListener, StateChangeListener {
+        ServerCommandProvider, PluginChannelListener, RSMMCPacketHandler, PostLoginListener {
 
     private static KeyBinding toggleMeterKey = new KeyBinding("key.redstonemultimeter.toggle", Keyboard.KEY_M, "key.categories.redstonemultimeter");
     private static KeyBinding pauseMetersKey = new KeyBinding("key.redstonemultimeter.pause", Keyboard.KEY_N, "key.categories.redstonemultimeter");
     private static KeyBinding stepForwardKey = new KeyBinding("key.redstonemultimeter.forward", Keyboard.KEY_PERIOD, "key.categories.redstonemultimeter");
     private static KeyBinding stepBackwardKey = new KeyBinding("key.redstonemultimeter.back", Keyboard.KEY_COMMA, "key.categories.redstonemultimeter");
 
-    private MeterManager meterManager = new MeterManager();
-    private MeterRenderer renderer = new MeterRenderer(60);
+    private SubtickClock clock = new SubtickClock();
+    private MeterRenderer renderer = new MeterRenderer(clock, 60);
+    private RSMMServer rsmmServer = new RSMMServer();
     private boolean metersPaused = false;
-
-    private Lock mutex = new ReentrantLock();
+    private ArrayList<Meter> meters = new ArrayList<>();
 
     public LiteModRedstoneMultimeter() {
     }
@@ -43,67 +53,17 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
         renderer.setWindowLength(length);
     }
 
-    public int getNumMeters() {
-        return meterManager.getMeters().size();
-    }
-
-    public void renameMeter(int ix, String name) {
-        List<Meter> meters = meterManager.getMeters();
-        if (0 <= ix && ix < meters.size()) {
-            meters.get(ix).setName(name);
-        }
-    }
-
-    public void renameLastMeter(String name) {
-        List<Meter> meters = meterManager.getMeters();
-        if (meters.size() > 0) {
-            meters.get(meters.size() - 1).setName(name);
-        }
-    }
-
-    public void recolorMeter(int ix, int color) {
-        List<Meter> meters = meterManager.getMeters();
-        if (0 <= ix && ix < meters.size()) {
-            meters.get(ix).setColor(color);
-        }
-    }
-
-    public void recolorLastMeter(int color) {
-        List<Meter> meters = meterManager.getMeters();
-        if (meters.size() > 0) {
-            meters.get(meters.size() - 1).setColor(color);
-        }
-    }
-
-    public void removeAll() {
-        mutex.lock();
-        try {
-            meterManager.removeAll();
-        } finally {
-            mutex.unlock();
-        }
-    }
-
     @Override
     public void onTick(Minecraft minecraft, float partialTicks, boolean inGame, boolean clock) {
-        if (!minecraft.isIntegratedServerRunning()) {
-            return;
-        }
         if (toggleMeterKey.isPressed()) {
             RayTraceResult r = minecraft.objectMouseOver;
             if (r.typeOfHit == RayTraceResult.Type.BLOCK) {
-                mutex.lock();
-                try {
-                    int dim = minecraft.player.dimension;
-                    // Holding control while placing the meter makes it immovable.
-                    boolean movable = !(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL));
-                    World world = minecraft.getIntegratedServer().getWorld(dim);
-                    // Note: We don't use minecraft.player.world because this is the client's version of the world
-                    //       and it can be out of sync with the server's version of the world.
-                    meterManager.toggleMeter(r.getBlockPos(), world, movable);
-                } finally {
-                    mutex.unlock();
-                }
+                int dim = minecraft.player.dimension;
+                boolean movable = !(Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL));
+                DimPos dimpos = new DimPos(dim, r.getBlockPos());
+                RSMMSPacketToggleMeter packet = new RSMMSPacketToggleMeter(dimpos, movable);
+                ClientPluginChannelsClient.sendMessage("RSMM", packet.toBuffer(), PluginChannels
+                        .ChannelPolicy.DISPATCH_IF_REGISTERED);
             }
         }
         if (pauseMetersKey.isPressed()) {
@@ -123,59 +83,20 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     }
 
     @Override
-    public void onPistonPush(World w, BlockPos pos, EnumFacing direction) {
-        mutex.lock();
-        try {
-            meterManager.onPistonPush(w, pos, direction);
-        } finally {
-            mutex.unlock();
-        }
-    }
-
-    @Override
-    public void onStateChange(World world, BlockPos pos) {
-        mutex.lock();
-        try {
-            Meter m = meterManager.getMeter(world, pos);
-            if (m != null) {
-                m.checkForUpdate();
-            }
-        } finally {
-            mutex.unlock();
-        }
-    }
-
-    @Override
     public void onPostRenderHUD(int screenWidth, int screenHeight) {
-        if (!Minecraft.getMinecraft().isIntegratedServerRunning()) {
-            return;
+        if (!metersPaused) {
+            int currentTick = clock.getTick();
+            int delta = currentTick - renderer.getWindowStartTick();
+            int windowStartTick = (int)(renderer.getWindowStartTick() + 0.3*delta) + 1;
+            windowStartTick = Math.min(windowStartTick, currentTick);
+            renderer.setWindowStartTick(windowStartTick);
         }
-        mutex.lock();
-        try {
-            if (!metersPaused) {
-                int currentTick = SubtickClock.getClock().getTick();
-                int delta = currentTick - renderer.getWindowStartTick();
-                int windowStartTick = (int)(renderer.getWindowStartTick() + 0.3*delta) + 1;
-                windowStartTick = Math.min(windowStartTick, currentTick);
-                renderer.setWindowStartTick(windowStartTick);
-            }
-            renderer.renderMeterTraces(meterManager.getMeters(), metersPaused);
-        } finally {
-            mutex.unlock();
-        }
+        renderer.renderMeterTraces(meters, metersPaused);
     }
 
     @Override
     public void onPostRenderEntities(float partialTicks) {
-        if (!Minecraft.getMinecraft().isIntegratedServerRunning()) {
-            return;
-        }
-        mutex.lock();
-        try {
-            renderer.renderMeterHighlights(meterManager.getMeters(), partialTicks);
-        } finally {
-            mutex.unlock();
-        }
+        renderer.renderMeterHighlights(meters, partialTicks);
     }
 
     @Override
@@ -184,8 +105,6 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
         LiteLoader.getInput().registerKeyBinding(pauseMetersKey);
         LiteLoader.getInput().registerKeyBinding(stepBackwardKey);
         LiteLoader.getInput().registerKeyBinding(stepForwardKey);
-        PistonPushEventDispatcher.addListener(this);
-        StateChangeEventDispatcher.addListener(this);
     }
 
     @Override
@@ -198,49 +117,76 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
         return "0.3";
     }
 
-
     @Override
     public void provideCommands(ServerCommandManager commandManager) {
-        commandManager.registerCommand(new MeterCommand(this));
+        commandManager.registerCommand(new MeterCommand(rsmmServer));
+    }
+
+    @Override
+    public void handleMeter(RSMMCPacketMeter packet) {
+        if (packet.shouldCreate()) {
+            Meter m = new Meter(clock, packet.getDimpos(), packet.getName(), packet.getColor(), true);
+            meters.add(m);
+        } else if (packet.shouldDelete()) {
+            meters.remove(packet.getMeterId());
+        } else {
+            int meterId = packet.getMeterId();
+            Meter m = meters.get(meterId);
+            if (packet.hasName()) m.setName(packet.getName());
+            if (packet.hasColor()) m.setColor(packet.getColor());
+            if (packet.hasDimPos()) m.registerMove(packet.getTime(), packet.getDimpos());
+            if (packet.hasPowered()) m.registerStateChange(packet.getTime(), packet.isPowered());
+        }
+    }
+
+    @Override
+    public void handleClock(RSMMCPacketClock packet) {
+        clock.onTickStart(packet.getTick(), packet.getLastTickLength());
+    }
+
+    @Override
+    public void onCustomPayload(String channel, PacketBuffer data) {
+        if ("RSMM".equals(channel)) {
+            RSMMCPacket packet = RSMMCPacket.fromBuffer(data);
+            packet.process(this);
+        }
+    }
+
+    @Override
+    public void onPostLogin(INetHandlerLoginClient netHandler, SPacketLoginSuccess packet) {
+        meters.clear();
+    }
+
+    @Override
+    public List<String> getChannels() {
+        return ImmutableList.of("RSMM");
     }
 
     /* ----- Unused Interface Methods ----- */
 
     @Override
-    public void upgradeSettings(String version, File configPath, File oldConfigPath) {
-    }
+    public void upgradeSettings(String version, File configPath, File oldConfigPath) {}
 
     @Override
-    public void onPostRender(float partialTicks) {
-
-    }
+    public void onPostRender(float partialTicks) {}
 
     @Override
-    public void onPreRenderHUD(int screenWidth, int screenHeight) {
-    }
+    public void onPreRenderHUD(int screenWidth, int screenHeight) {}
 
     @Override
-    public void onRenderWorld(float partialTicks) {
-
-    }
+    public void onRenderWorld(float partialTicks) {}
 
     @Override
-    public void onSetupCameraTransform(float partialTicks, int pass, long timeSlice) {
-
-    }
+    public void onSetupCameraTransform(float partialTicks, int pass, long timeSlice) {}
 
     @Override
-    public void onRenderSky(float partialTicks, int pass) {
-
-    }
+    public void onRenderSky(float partialTicks, int pass) {}
 
     @Override
-    public void onRenderClouds(float partialTicks, int pass, RenderGlobal renderGlobal) {
-
-    }
+    public void onRenderClouds(float partialTicks, int pass, RenderGlobal renderGlobal) {}
 
     @Override
-    public void onRenderTerrain(float partialTicks, int pass) {
+    public void onRenderTerrain(float partialTicks, int pass) {}
 
-    }
+
 }

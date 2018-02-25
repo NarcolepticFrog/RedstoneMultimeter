@@ -21,6 +21,7 @@ import net.minecraft.world.World;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class RSMMServer implements StateChangeListener, PistonPushListener, TickStartListener,
         PlayerConnectionListener, ServerPacketListener, RSMMSPacketHandler {
@@ -87,6 +88,10 @@ public class RSMMServer implements StateChangeListener, PistonPushListener, Tick
     private ArrayList<Meter> meters = new ArrayList<>();
     private HashMap<DimPos, Integer> dimpos2index = new HashMap<>();
 
+    public int getNumMeters() {
+        return meters.size();
+    }
+
     @Override
     public void onPistonPush(World w, BlockPos pos, EnumFacing direction) {
         int dim = w.provider.getDimensionType().getId();
@@ -140,21 +145,6 @@ public class RSMMServer implements StateChangeListener, PistonPushListener, Tick
         player.connection.sendPacket(new SPacketCustomPayload(
                 "REGISTER", new PacketBuffer(Unpooled.wrappedBuffer(
                 "RSMM".getBytes(StandardCharsets.UTF_8)))));
-
-        // Send them all the existing meters
-        for (int meterId = 0; meterId < meters.size(); meterId++) {
-            Meter meter = meters.get(meterId);
-
-            RSMMCPacketMeter packet = new RSMMCPacketMeter();
-            packet.setMeterId(meterId);
-            packet.setDimpos(meter.dimpos);
-            packet.setName(meter.name);
-            packet.setColor(meter.color);
-            packet.setPowered(meter.powered);
-            packet.setCreate();
-
-            sendToPlayer(player, packet);
-        }
     }
 
     @Override
@@ -176,6 +166,8 @@ public class RSMMServer implements StateChangeListener, PistonPushListener, Tick
             m.movable = movable;
             m.dimpos = dimpos;
             m.powered = powered;
+            meters.add(m);
+            dimpos2index.put(dimpos, meters.size() - 1);
 
             RSMMCPacketMeter outPacket = new RSMMCPacketMeter();
             outPacket.setName(name);
@@ -200,7 +192,7 @@ public class RSMMServer implements StateChangeListener, PistonPushListener, Tick
     }
 
     @Override
-    public void onCustomPayload(String channel, PacketBuffer data) {
+    public void onCustomPayload(EntityPlayerMP sender, String channel, PacketBuffer data) {
         if ("RSMM".equals(channel)) {
             RSMMSPacket packet = RSMMSPacket.fromBuffer(data);
             if (packet != null) {
@@ -208,6 +200,27 @@ public class RSMMServer implements StateChangeListener, PistonPushListener, Tick
             }
         }
     }
+
+    @Override
+    public void onChannelRegister(EntityPlayerMP sender, List<String> channels) {
+        if (channels.contains("RSMM")) {
+            for (int meterId = 0; meterId < meters.size(); meterId++) {
+                Meter meter = meters.get(meterId);
+
+                RSMMCPacketMeter packet = new RSMMCPacketMeter();
+                packet.setDimpos(meter.dimpos);
+                packet.setName(meter.name);
+                packet.setColor(meter.color);
+                packet.setPowered(meter.powered);
+                packet.setCreate();
+
+                sendToPlayer(sender, packet);
+            }
+        }
+    }
+
+    @Override
+    public void onChannelUnregister(EntityPlayerMP sender, List<String> channels) {}
 
     public void renameMeter(int meterId, String name) {
         if (meterId < 0 || meterId >= meters.size()) return;

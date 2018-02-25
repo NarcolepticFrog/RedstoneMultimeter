@@ -33,10 +33,12 @@ public class MeterRenderer {
     private static final int METER_NAME_COLOR = 0xFFFFFFFF;
     private static final int PAUSED_TEXT_COLOR = 0xFF000000;
 
+    private SubtickClock clock;
     private int windowLength; // The number of ticks to show in the render
     private int windowStartTick; // The most recent tick to show in the render
 
-    public MeterRenderer(int windowLength) {
+    public MeterRenderer(SubtickClock clock, int windowLength) {
+        this.clock = clock;
         setWindowLength(windowLength);
         setWindowStartTick(0);
     }
@@ -80,7 +82,7 @@ public class MeterRenderer {
                 float g = (float) (color >> 8 & 255) / 255.0F;
                 float b = (float) (color & 255) / 255.0F;
 
-                AxisAlignedBB aabb = Block.FULL_BLOCK_AABB.offset(m.getPosition()).offset(-dx, -dy, -dz).grow(0.002);
+                AxisAlignedBB aabb = Block.FULL_BLOCK_AABB.offset(m.getDimPos().getPos()).offset(-dx, -dy, -dz).grow(0.002);
                 RenderGlobal.renderFilledBox(aabb, r, g, b, 0.5F);
                 if (m.isMovable()) {
                     RenderGlobal.drawBoundingBox(aabb.minX, aabb.minY, aabb.minZ,
@@ -233,7 +235,7 @@ public class MeterRenderer {
 
     private void renderSubtick(int totalWidth, int totalHeight, List<Meter> meters, boolean paused) {
         int tick = getSelectedTick();
-        int numSubticks = SubtickClock.getClock().tickLength(tick);
+        int numSubticks = clock.tickLength(tick);
         if (numSubticks == 0 || !paused) {
             return;
         }
@@ -296,7 +298,7 @@ public class MeterRenderer {
             int bot = top + fr.FONT_HEIGHT;
 
             for (int t = windowStartTick - windowLength + 1; t <= windowStartTick; t++) {
-                SubtickTime stt = SubtickClock.getClock().firstTimeOfTick(t);
+                SubtickTime stt = clock.firstTimeOfTick(t);
 
                 Meter.StateChange mostRecentChange = m.mostRecentChange(stt);
                 if (mostRecentChange != null && mostRecentChange.getTime().getTick() == t-1) {

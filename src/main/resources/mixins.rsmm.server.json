@@ -1,9 +1,0 @@
-{
-  "required": true,
-  "package": "narcolepticfrog.rsmm.server.mixins",
-  "refmap": "mixins.rsmm.refmap.json",
-  "mixins": [
-    "MixinEntityPlayerMP",
-    "MixinNetHandlerPlayServer"
-  ]
-}
