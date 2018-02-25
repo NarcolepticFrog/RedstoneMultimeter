@@ -6,4 +6,6 @@ public interface PlayerConnectionListener {
 
     public void onPlayerConnect(EntityPlayerMP player);
 
+    public void onPlayerDisconnect(EntityPlayerMP player);
+
 }

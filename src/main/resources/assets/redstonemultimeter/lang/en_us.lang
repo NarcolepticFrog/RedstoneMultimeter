@@ -1,6 +1,6 @@
 # Display
 redstonemultimeter.ui.metername=Meter %d
-redstonemultimeter.ui.paused=Paused.
+redstonemultimeter.ui.paused=Paused
 # Keybindings
 key.categories.redstonemultimeter=Redstone Multimeter
 key.redstonemultimeter.toggle=Toggle Meter
@@ -8,7 +8,7 @@ key.redstonemultimeter.pause=Pause Meters
 key.redstonemultimeter.forward=Step Forward
 key.redstonemultimeter.back=Step Backward
 # Commands
-redstonemultimeter.command.meter.usage=/meter name [idx] <name> OR /meter color [idx] <color> OR /meter removeAll
+redstonemultimeter.command.meter.usage=/meter name [idx] <name> OR /meter color [idx] <color> OR /meter removeAll OR /meter group <groupName>
 redstonemultimeter.command.meter.rename.last=Renamed meter to %s.
 redstonemultimeter.command.meter.rename.index=Renamed meter %d to %s.
 redstonemultimeter.command.meter.recolor.last=Recolored meter to %d.
@@ -16,4 +16,4 @@ redstonemultimeter.command.meter.recolor.index=Recolored meter %d to %d.
 redstonemultimeter.command.meter.rename.noMeters=There are no meters to rename!  Create one with %s.
 redstonemultimeter.command.meter.recolor.noMeters=There are no meters to rename!  Create one with %s.
 redstonemultimeter.command.meter.removedAll=Removed all meters.
-redstonemultimeter.command.meter.duration=Set duration to %d.
+redstonemultimeter.command.meter.subscribed=Subscribed to meter group %s.

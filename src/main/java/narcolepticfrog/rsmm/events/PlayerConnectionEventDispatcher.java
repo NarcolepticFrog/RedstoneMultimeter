@@ -21,4 +21,10 @@ public class PlayerConnectionEventDispatcher {
         }
     }
 
+    public static void dispatchPlayerDisconnectEvent(EntityPlayerMP player) {
+        for (PlayerConnectionListener listener : listeners) {
+            listener.onPlayerDisconnect(player);
+        }
+    }
+
 }

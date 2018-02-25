@@ -1,10 +1,12 @@
 package narcolepticfrog.rsmm;
 
+import narcolepticfrog.rsmm.server.MeterGroup;
 import narcolepticfrog.rsmm.server.RSMMServer;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentKeybind;
@@ -37,30 +39,35 @@ public class MeterCommand extends CommandBase {
             throw new WrongUsageException(USAGE);
         }
 
+        if (!(sender instanceof EntityPlayerMP)) {
+            return;
+        }
+        EntityPlayerMP player = (EntityPlayerMP)sender;
+
         if (args[0].equals("name")) {
-            if (rsmmServer.getNumMeters() <= 0) {
+            if (rsmmServer.getNumMeters(player) <= 0) {
                 throw new CommandException("redstonemultimeter.command.meter.rename.noMeters", new TextComponentKeybind("key.redstonemultimeter.toggle"));
             }
             if (args.length == 2) {
-                rsmmServer.renameLastMeter(args[1]);
+                rsmmServer.renameLastMeter(player, args[1]);
                 notifyCommandListener(sender, this, "redstonemultimeter.command.meter.rename.last", args[1]);
             } else if (args.length == 3) {
-                int ix = parseInt(args[1], 0, rsmmServer.getNumMeters() - 1);
-                rsmmServer.renameMeter(ix, args[2]);
+                int ix = parseInt(args[1], 0, rsmmServer.getNumMeters(player) - 1);
+                rsmmServer.renameMeter(player, ix, args[2]);
                 notifyCommandListener(sender, this, "redstonemultimeter.command.meter.rename.index", ix, args[2]);
             } else {
                 throw new WrongUsageException(USAGE);
             }
         } else if (args[0].equals("color")) {
-            if (rsmmServer.getNumMeters() <= 0) {
+            if (rsmmServer.getNumMeters(player) <= 0) {
                 throw new CommandException("redstonemultimeter.command.meter.recolor.noMeters", new TextComponentKeybind("key.redstonemultimeter.toggle"));
             }
             if (args.length == 2) {
-                rsmmServer.recolorLastMeter(ColorUtils.parseColor(args[1]));
+                rsmmServer.recolorLastMeter(player, ColorUtils.parseColor(args[1]));
                 notifyCommandListener(sender, this, "redstonemultimeter.command.meter.recolor.last", args[1]);
             } else if (args.length == 3) {
-                int ix = parseInt(args[1], 0, rsmmServer.getNumMeters() - 1);
-                rsmmServer.recolorMeter(ix, ColorUtils.parseColor(args[2]));
+                int ix = parseInt(args[1], 0, rsmmServer.getNumMeters(player) - 1);
+                rsmmServer.recolorMeter(player, ix, ColorUtils.parseColor(args[2]));
                 notifyCommandListener(sender, this, "redstonemultimeter.command.meter.recolor.index", ix, args[2]);
             } else {
                 throw new WrongUsageException(USAGE);
@@ -69,8 +76,15 @@ public class MeterCommand extends CommandBase {
             if (args.length != 1) {
                 throw new WrongUsageException(USAGE);
             }
-            rsmmServer.removeAllMeters();
+            rsmmServer.removeAllMeters(player);
             notifyCommandListener(sender, this, "redstonemultimeter.command.meter.removedAll");
+        } else if (args[0].equals("group")) {
+            if (args.length != 2) {
+                throw new WrongUsageException(USAGE);
+            }
+            rsmmServer.subscribePlayerToGroup(player, args[1]);
+            notifyCommandListener(sender, this, "redstonemultimeter.command.meter.subscribed",
+                    args[1]);
         } else {
             throw new WrongUsageException(USAGE);
         }

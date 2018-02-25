@@ -3,15 +3,11 @@ package narcolepticfrog.rsmm;
 import com.google.common.collect.ImmutableList;
 import com.mumfrey.liteloader.*;
 import com.mumfrey.liteloader.client.ClientPluginChannelsClient;
-import com.mumfrey.liteloader.core.ClientPluginChannels;
 import com.mumfrey.liteloader.core.LiteLoader;
 import com.mumfrey.liteloader.core.PluginChannels;
 import narcolepticfrog.rsmm.clock.SubtickClock;
-import narcolepticfrog.rsmm.events.PistonPushEventDispatcher;
-import narcolepticfrog.rsmm.events.PistonPushListener;
-import narcolepticfrog.rsmm.events.StateChangeEventDispatcher;
-import narcolepticfrog.rsmm.events.StateChangeListener;
 import narcolepticfrog.rsmm.network.*;
+import narcolepticfrog.rsmm.server.MeterGroup;
 import narcolepticfrog.rsmm.server.RSMMServer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderGlobal;
@@ -20,20 +16,15 @@ import net.minecraft.command.ServerCommandManager;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.login.INetHandlerLoginClient;
 import net.minecraft.network.login.server.SPacketLoginSuccess;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.RayTraceResult;
-import net.minecraft.world.World;
 import org.lwjgl.input.Keyboard;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, PostRenderListener, PreRenderListener,
-        ServerCommandProvider, PluginChannelListener, RSMMCPacketHandler, PostLoginListener {
+        ServerCommandProvider, PluginChannelListener, RSMMCPacketHandler {
 
     private static KeyBinding toggleMeterKey = new KeyBinding("key.redstonemultimeter.toggle", Keyboard.KEY_M, "key.categories.redstonemultimeter");
     private static KeyBinding pauseMetersKey = new KeyBinding("key.redstonemultimeter.pause", Keyboard.KEY_N, "key.categories.redstonemultimeter");
@@ -140,6 +131,12 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     }
 
     @Override
+    public void handleMeterGroup(RSMMCPacketMeterGroup packet) {
+        meters.clear();
+        renderer.setGroupName(packet.getGroupName());
+    }
+
+    @Override
     public void handleClock(RSMMCPacketClock packet) {
         clock.onTickStart(packet.getTick(), packet.getLastTickLength());
     }
@@ -150,11 +147,6 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
             RSMMCPacket packet = RSMMCPacket.fromBuffer(data);
             packet.process(this);
         }
-    }
-
-    @Override
-    public void onPostLogin(INetHandlerLoginClient netHandler, SPacketLoginSuccess packet) {
-        meters.clear();
     }
 
     @Override

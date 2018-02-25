@@ -22,6 +22,9 @@ public abstract class RSMMCPacket {
             case RSMMCPacketMeter.MESSAGE_ID:
                 return RSMMCPacketMeter.fromBuffer(buffer);
 
+            case RSMMCPacketMeterGroup.MESSAGE_ID:
+                return RSMMCPacketMeterGroup.fromBuffer(buffer);
+
         }
 
         return null;

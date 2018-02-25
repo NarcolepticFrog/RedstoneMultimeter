@@ -36,6 +36,7 @@ public class MeterRenderer {
     private SubtickClock clock;
     private int windowLength; // The number of ticks to show in the render
     private int windowStartTick; // The most recent tick to show in the render
+    private String groupName = "";
 
     public MeterRenderer(SubtickClock clock, int windowLength) {
         this.clock = clock;
@@ -61,6 +62,14 @@ public class MeterRenderer {
 
     public int getSelectedTick() {
         return windowStartTick - windowLength/4;
+    }
+
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
     }
 
     public void renderMeterHighlights(Collection<Meter> meters, float partialTicks) {
@@ -324,9 +333,11 @@ public class MeterRenderer {
 
     private void renderPauseNotification(int totalHeight, boolean paused) {
         FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
-        if (paused) {
-            fr.drawString(I18n.format("redstonemultimeter.ui.paused"), BORDER, totalHeight + 3, PAUSED_TEXT_COLOR);
+        String text = groupName;
+        if (paused){
+            text = text + " (" + I18n.format("redstonemultimeter.ui.paused") + ")";
         }
+        fr.drawString(text, BORDER, totalHeight + 3, PAUSED_TEXT_COLOR);
     }
 
 }

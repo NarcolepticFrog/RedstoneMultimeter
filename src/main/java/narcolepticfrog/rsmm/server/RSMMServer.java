@@ -1,30 +1,26 @@
 package narcolepticfrog.rsmm.server;
 
+import com.google.common.base.Charsets;
 import io.netty.buffer.Unpooled;
-import narcolepticfrog.rsmm.ColorUtils;
-import narcolepticfrog.rsmm.DimPos;
-import narcolepticfrog.rsmm.clock.SubtickTime;
 import narcolepticfrog.rsmm.events.*;
-import narcolepticfrog.rsmm.meterable.Meterable;
-import narcolepticfrog.rsmm.network.*;
-import net.minecraft.block.state.IBlockState;
+import narcolepticfrog.rsmm.network.RSMMCPacket;
+import narcolepticfrog.rsmm.network.RSMMSPacket;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.server.SPacketCustomPayload;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.management.PlayerList;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 public class RSMMServer implements StateChangeListener, PistonPushListener, TickStartListener,
-        PlayerConnectionListener, ServerPacketListener, RSMMSPacketHandler {
+        PlayerConnectionListener, ServerPacketListener {
 
     public RSMMServer() {
         StateChangeEventDispatcher.addListener(this);
@@ -34,231 +30,147 @@ public class RSMMServer implements StateChangeListener, PistonPushListener, Tick
         ServerPacketEventDispatcher.addListener(this);
     }
 
+    private HashMap<String, MeterGroup> meterGroups = new HashMap<>();
+    private HashMap<UUID, String> playerSubscriptions = new HashMap<>();
+
+    private MeterGroup getMeterGroup(EntityPlayerMP player) {
+        UUID playerUUID = player.getUniqueID();
+        String groupName = playerSubscriptions.get(playerUUID);
+        return meterGroups.get(groupName);
+    }
+
     private MinecraftServer minecraftServer;
 
-    private MinecraftServer getMinecraftServer() {
+    public MinecraftServer getMinecraftServer() {
         if (minecraftServer == null) {
             minecraftServer = Minecraft.getMinecraft().getIntegratedServer();
         }
         return minecraftServer;
     }
 
-    private void sendToPlayer(EntityPlayerMP player, RSMMCPacket packet) {
+    public void sendToPlayer(EntityPlayerMP player, RSMMCPacket packet) {
         HasClientChannels clientChannels = (HasClientChannels)player;
         if (clientChannels.getClientChannels().contains("RSMM")) {
             player.connection.sendPacket(new SPacketCustomPayload("RSMM", packet.toBuffer()));
         }
     }
 
-    private void broadcast(RSMMCPacket packet) {
-        PlayerList playerList = getMinecraftServer().getPlayerList();
-        for (EntityPlayerMP player : playerList.getPlayers()) {
-            sendToPlayer(player, packet);
-        }
-    }
-
-    private int currentTick = -1;
-    private int subtickIndex = 0;
-
-    private SubtickTime takeNextTime() {
-        return new SubtickTime(currentTick, subtickIndex++);
-    }
-
-    @Override
-    public void onTickStart(int tick) {
-        RSMMCPacketClock packet = new RSMMCPacketClock(tick, subtickIndex);
-        broadcast(packet);
-        currentTick = tick;
-        subtickIndex = 0;
-    }
-
-    /**
-     * This is the server's representation of a meter. Since the server does not store histories,
-     * this class is significantly simpler than the Meter class used by the client.
-     */
-    private static class Meter {
-        public DimPos dimpos;
-        public boolean powered;
-        public String name;
-        public int color;
-        public boolean movable;
-    }
-
-    private int meterNameIndex = 0;
-    private ArrayList<Meter> meters = new ArrayList<>();
-    private HashMap<DimPos, Integer> dimpos2index = new HashMap<>();
-
-    public int getNumMeters() {
-        return meters.size();
-    }
-
     @Override
     public void onPistonPush(World w, BlockPos pos, EnumFacing direction) {
-        int dim = w.provider.getDimensionType().getId();
-        DimPos dimpos = new DimPos(dim, pos);
-        if (dimpos2index.containsKey(dimpos)) {
-            int meterId = dimpos2index.get(dimpos);
-            Meter meter = meters.get(meterId);
-            if (meter.movable) {
-                DimPos newDimPos = dimpos.offset(direction);
-
-                meter.dimpos = newDimPos;
-                dimpos2index.remove(dimpos);
-                dimpos2index.put(newDimPos, meterId);
-
-                RSMMCPacketMeter packet = new RSMMCPacketMeter();
-                packet.setMeterId(meterId);
-                packet.setDimpos(dimpos);
-                broadcast(packet);
-            }
-        }
-    }
-
-    @Override
-    public void onStateChange(World w, BlockPos pos) {
-        int dim = w.provider.getDimensionType().getId();
-        DimPos dimpos = new DimPos(dim, pos);
-        if (dimpos2index.containsKey(dimpos)) {
-            int meterId = dimpos2index.get(dimpos);
-            Meter meter = meters.get(meterId);
-
-            IBlockState blockState = w.getBlockState(pos);
-            Meterable meterable = (Meterable)blockState.getBlock();
-
-            boolean powered = meterable.isPowered(blockState, w, pos);
-            if (powered != meter.powered) {
-                meter.powered = powered;
-                SubtickTime time = takeNextTime();
-
-                RSMMCPacketMeter packet = new RSMMCPacketMeter();
-                packet.setMeterId(meterId);
-                packet.setTime(time);
-                packet.setPowered(powered);
-                broadcast(packet);
-            }
+        for (MeterGroup mg : meterGroups.values()) {
+            mg.onPistonPush(w, pos, direction);
         }
     }
 
     @Override
     public void onPlayerConnect(EntityPlayerMP player) {
-        // Register the RSMM plugin channel with the client
-        player.connection.sendPacket(new SPacketCustomPayload(
-                "REGISTER", new PacketBuffer(Unpooled.wrappedBuffer(
-                "RSMM".getBytes(StandardCharsets.UTF_8)))));
+        // Register the RSMM plugin channel with the player
+        player.connection.sendPacket(new SPacketCustomPayload("REGISTER", new PacketBuffer(Unpooled.wrappedBuffer("RSMM".getBytes(Charsets.UTF_8)))));
+        // Give them a default group subscription
+        if (!playerSubscriptions.containsKey(player.getUniqueID())) {
+            playerSubscriptions.put(player.getUniqueID(), player.getName());
+        }
+        System.out.println("Player subscription = " + playerSubscriptions.get(player.getUniqueID()));
     }
 
     @Override
-    public void handleToggleMeter(RSMMSPacketToggleMeter packet) {
-        DimPos dimpos = packet.getDimpos();
-        if (!dimpos2index.containsKey(dimpos)) {
-            // Create a new meter
-            String name = "Meter " + (meterNameIndex++);
-            int color = ColorUtils.nextColor();
-            boolean movable = packet.isMovable();
-            World w = getMinecraftServer().getWorld(dimpos.getDim());
-            IBlockState blockState = w.getBlockState(dimpos.getPos());
-            Meterable meterable = (Meterable)blockState.getBlock();
-            boolean powered = meterable.isPowered(blockState, w, dimpos.getPos());
-
-            Meter m = new Meter();
-            m.name = name;
-            m.color = color;
-            m.movable = movable;
-            m.dimpos = dimpos;
-            m.powered = powered;
-            meters.add(m);
-            dimpos2index.put(dimpos, meters.size() - 1);
-
-            RSMMCPacketMeter outPacket = new RSMMCPacketMeter();
-            outPacket.setName(name);
-            outPacket.setColor(color);
-            outPacket.setDimpos(dimpos);
-            outPacket.setPowered(powered);
-            outPacket.setCreate();
-            broadcast(outPacket);
-        } else {
-            // Remove the old meter
-            int meterId = dimpos2index.get(dimpos);
-            dimpos2index.remove(dimpos);
-            meters.remove(meterId);
-            for (int i = 0; i < meters.size(); i++) {
-                dimpos2index.put(meters.get(i).dimpos, i);
-            }
-            RSMMCPacketMeter outPacket = new RSMMCPacketMeter();
-            outPacket.setMeterId(meterId);
-            outPacket.setDelete();
-            broadcast(outPacket);
-        }
+    public void onPlayerDisconnect(EntityPlayerMP player) {
+        getMeterGroup(player).removePlayer(player.getUniqueID());
     }
 
     @Override
     public void onCustomPayload(EntityPlayerMP sender, String channel, PacketBuffer data) {
         if ("RSMM".equals(channel)) {
             RSMMSPacket packet = RSMMSPacket.fromBuffer(data);
-            if (packet != null) {
-                packet.process(this);
-            }
+            if (packet == null) return;
+            packet.process(getMeterGroup(sender));
         }
     }
 
     @Override
     public void onChannelRegister(EntityPlayerMP sender, List<String> channels) {
         if (channels.contains("RSMM")) {
-            for (int meterId = 0; meterId < meters.size(); meterId++) {
-                Meter meter = meters.get(meterId);
-
-                RSMMCPacketMeter packet = new RSMMCPacketMeter();
-                packet.setDimpos(meter.dimpos);
-                packet.setName(meter.name);
-                packet.setColor(meter.color);
-                packet.setPowered(meter.powered);
-                packet.setCreate();
-
-                sendToPlayer(sender, packet);
+            String groupName = playerSubscriptions.get(sender.getUniqueID());
+            if (!meterGroups.containsKey(groupName)) {
+                meterGroups.put(groupName, new MeterGroup(this, groupName));
             }
+            System.out.println("Adding player to group " + groupName);
+            meterGroups.get(groupName).addPlayer(sender.getUniqueID());
         }
     }
 
     @Override
     public void onChannelUnregister(EntityPlayerMP sender, List<String> channels) {}
 
-    public void renameMeter(int meterId, String name) {
-        if (meterId < 0 || meterId >= meters.size()) return;
-        meters.get(meterId).name = name;
-        RSMMCPacketMeter packet = new RSMMCPacketMeter();
-        packet.setMeterId(meterId);
-        packet.setName(name);
-        broadcast(packet);
-    }
-
-    public void renameLastMeter(String name) {
-        int meterId = meters.size() - 1;
-        renameMeter(meterId, name);
-    }
-
-    public void recolorMeter(int meterId, int color) {
-        if (meterId < 0 || meterId >= meters.size()) return;
-        meters.get(meterId).color = color;
-        RSMMCPacketMeter packet = new RSMMCPacketMeter();
-        packet.setMeterId(meterId);
-        packet.setColor(color);
-        broadcast(packet);
-    }
-
-    public void recolorLastMeter(int color) {
-        int meterId = meters.size() - 1;
-        recolorMeter(meterId, color);
-    }
-
-    public void removeAllMeters() {
-        for (int meterId = meters.size() - 1; meterId >= 0; meterId--) {
-            RSMMCPacketMeter packet = new RSMMCPacketMeter();
-            packet.setMeterId(meterId);
-            packet.setDelete();
-            broadcast(packet);
+    @Override
+    public void onStateChange(World world, BlockPos pos) {
+        for (MeterGroup mg : meterGroups.values()) {
+            mg.onStateChange(world, pos);
         }
-        meters.clear();
-        dimpos2index.clear();
     }
 
+    @Override
+    public void onTickStart(int tick) {
+        for (MeterGroup mg : meterGroups.values()) {
+            mg.onTickStart(tick);
+        }
+    }
+
+    public void subscribePlayerToGroup(EntityPlayerMP player, String groupName) {
+        MeterGroup mg = getMeterGroup(player);
+        if (mg != null) {
+            mg.removePlayer(player.getUniqueID());
+        }
+        playerSubscriptions.put(player.getUniqueID(), groupName);
+        if (!meterGroups.containsKey(groupName)) {
+            meterGroups.put(groupName, new MeterGroup(this, groupName));
+        }
+        meterGroups.get(groupName).addPlayer(player.getUniqueID());
+    }
+
+    /* ----- Forward commands to proper meter group ----- */
+
+    public int getNumMeters(EntityPlayerMP player) {
+        MeterGroup mg = getMeterGroup(player);
+        if (mg == null) {
+            return 0;
+        } else {
+            return mg.getNumMeters();
+        }
+    }
+
+    public void renameMeter(EntityPlayerMP player, int meterId, String name) {
+        MeterGroup mg = getMeterGroup(player);
+        if (mg != null) {
+            mg.renameMeter(meterId, name);
+        }
+    }
+
+    public void renameLastMeter(EntityPlayerMP player, String name) {
+        MeterGroup mg = getMeterGroup(player);
+        if (mg != null) {
+            mg.renameLastMeter(name);
+        }
+    }
+
+    public void recolorMeter(EntityPlayerMP player, int meterId, int color) {
+        MeterGroup mg = getMeterGroup(player);
+        if (mg != null) {
+            mg.recolorMeter(meterId, color);
+        }
+    }
+
+    public void recolorLastMeter(EntityPlayerMP player, int color) {
+        MeterGroup mg = getMeterGroup(player);
+        if (mg != null) {
+            mg.recolorLastMeter(color);
+        }
+    }
+
+    public void removeAllMeters(EntityPlayerMP player) {
+        MeterGroup mg = getMeterGroup(player);
+        if (mg != null) {
+            mg.removeAllMeters();
+        }
+    }
 }
