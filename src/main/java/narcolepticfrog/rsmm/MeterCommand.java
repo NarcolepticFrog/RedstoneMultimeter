@@ -82,7 +82,7 @@ public class MeterCommand extends CommandBase {
             if (args.length != 2) {
                 throw new WrongUsageException(USAGE);
             }
-            rsmmServer.subscribePlayerToGroup(player, args[1]);
+            rsmmServer.changePlayerSubscription(player, args[1]);
             notifyCommandListener(sender, this, "redstonemultimeter.command.meter.subscribed",
                     args[1]);
         } else {

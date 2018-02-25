@@ -36,12 +36,20 @@ public class MeterGroup implements RSMMSPacketHandler {
         return name;
     }
 
+    public int getNumPlayers() {
+        return subscribedPlayers.size();
+    }
+
     public EntityPlayerMP getPlayerFromUUID(UUID uuid) {
         Entity playerEntity = server.getMinecraftServer().getEntityFromUuid(uuid);
         if (playerEntity != null && playerEntity instanceof EntityPlayerMP) {
             return (EntityPlayerMP)playerEntity;
         }
         return null;
+    }
+
+    public void addPlayer(EntityPlayerMP player) {
+        addPlayer(player.getUniqueID());
     }
 
     public void addPlayer(UUID playerUUID) {
@@ -60,6 +68,10 @@ public class MeterGroup implements RSMMSPacketHandler {
 
             server.sendToPlayer(player, packet);
         }
+    }
+
+    public void removePlayer(EntityPlayerMP player) {
+        removePlayer(player.getUniqueID());
     }
 
     public void removePlayer(UUID playerUUID) {
