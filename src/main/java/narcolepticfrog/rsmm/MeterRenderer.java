@@ -1,6 +1,5 @@
 package narcolepticfrog.rsmm;
 
-import com.mumfrey.liteloader.gl.GL;
 import narcolepticfrog.rsmm.clock.SubtickClock;
 import narcolepticfrog.rsmm.clock.SubtickTime;
 import net.minecraft.block.Block;
@@ -11,10 +10,8 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderGlobal;
-import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.math.AxisAlignedBB;
-import org.lwjgl.opengl.GL11;
 
 import java.util.Collection;
 import java.util.List;
@@ -91,8 +88,7 @@ public class MeterRenderer {
         GlStateManager.disableTexture2D();
         GlStateManager.depthMask(false);
 
-        GL11.glPushMatrix();
-        GL11.glDisable(GL11.GL_LIGHTING);
+        GlStateManager.disableLighting();;
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
 
         for (Meter m : meters) {
@@ -113,9 +109,8 @@ public class MeterRenderer {
             }
         }
 
-        GL11.glEnable(GL11.GL_LIGHTING);
-        GL11.glPopMatrix();
-
+        GlStateManager.enableLighting();
+        
         GlStateManager.depthMask(true);
         GlStateManager.enableTexture2D();
         GlStateManager.disableBlend();
