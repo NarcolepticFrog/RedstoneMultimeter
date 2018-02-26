@@ -109,4 +109,15 @@ public class MeterCommand extends CommandBase {
             return Collections.<String>emptyList();
         }
     }
+
+    @Override
+    public boolean checkPermission(MinecraftServer server, ICommandSender sender) {
+        return true;
+    }
+
+    @Override
+    public int getRequiredPermissionLevel() {
+        return 0;
+    }
+    
 }
