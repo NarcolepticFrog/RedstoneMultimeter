@@ -87,6 +87,7 @@ public class MeterGroup implements RSMMSPacketHandler {
             packet.setName(meter.name);
             packet.setColor(meter.color);
             packet.setPowered(meter.powered);
+            packet.setMovable(meter.movable);
             packet.setCreate();
 
             server.sendToPlayer(player, packet);
