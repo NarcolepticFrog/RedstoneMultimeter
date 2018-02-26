@@ -112,7 +112,7 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     @Override
     public void handleMeter(RSMMCPacketMeter packet) {
         if (packet.shouldCreate()) {
-            Meter m = new Meter(clock, packet.getDimpos(), packet.getName(), packet.getColor(), true);
+            Meter m = new Meter(clock, packet.getDimpos(), packet.getName(), packet.getColor(), packet.isMovable());
             meters.add(m);
         } else if (packet.shouldDelete()) {
             meters.remove(packet.getMeterId());

@@ -29,6 +29,7 @@ public class RSMMCPacketMeter extends RSMMCPacket {
     private int color;
     private SubtickTime time;
     private boolean powered;
+    private boolean movable;
 
     public void setMeterId(int meterId) {
         this.meterId = meterId;
@@ -83,6 +84,10 @@ public class RSMMCPacketMeter extends RSMMCPacket {
         fields.set(TIME);
     }
 
+    public boolean hasColor() {
+        return fields.get(COLOR);
+    }
+
     public SubtickTime getTime() {
         return time;
     }
@@ -104,8 +109,12 @@ public class RSMMCPacketMeter extends RSMMCPacket {
         return fields.get(POWERED);
     }
 
-    public boolean hasColor() {
-        return fields.get(COLOR);
+    public void setMovable(boolean movable) {
+        this.movable = movable;
+    }
+
+    public boolean isMovable() {
+        return movable;
     }
 
     public void setCreate() {
@@ -143,8 +152,10 @@ public class RSMMCPacketMeter extends RSMMCPacket {
         if (fields.get(COLOR)) packet.setColor(buffer.readInt());
         if (fields.get(TIME)) packet.setTime(SubtickTime.readFromBuffer(buffer));
         if (fields.get(POWERED)) packet.setPowered(buffer.readBoolean());
-
-        if (fields.get(CREATE)) packet.setCreate();
+        if (fields.get(CREATE)) {
+            packet.setMovable(buffer.readBoolean());
+            packet.setCreate();
+        }
         if (fields.get(DELETE)) packet.setDelete();
 
         return packet;
@@ -162,6 +173,7 @@ public class RSMMCPacketMeter extends RSMMCPacket {
         if (fields.get(COLOR)) buffer.writeInt(color);
         if (fields.get(TIME)) time.writeToBuffer(buffer);
         if (fields.get(POWERED)) buffer.writeBoolean(powered);
+        if (fields.get(CREATE)) buffer.writeBoolean(movable);
 
         return buffer;
     }

@@ -183,7 +183,8 @@ public class MeterGroup implements RSMMSPacketHandler {
 
                 RSMMCPacketMeter packet = new RSMMCPacketMeter();
                 packet.setMeterId(meterId);
-                packet.setDimpos(dimpos);
+                packet.setTime(takeNextTime());
+                packet.setDimpos(newDimPos);
                 broadcastToSubscribers(packet);
             }
         }
@@ -240,6 +241,7 @@ public class MeterGroup implements RSMMSPacketHandler {
             outPacket.setColor(color);
             outPacket.setDimpos(dimpos);
             outPacket.setPowered(powered);
+            outPacket.setMovable(movable);
             outPacket.setCreate();
             broadcastToSubscribers(outPacket);
         } else {
