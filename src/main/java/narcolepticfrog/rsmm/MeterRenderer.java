@@ -8,6 +8,7 @@ import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.util.math.AxisAlignedBB;
@@ -33,10 +34,13 @@ public class MeterRenderer {
     private static final int METER_NAME_COLOR = 0xFFFFFFFF;
     private static final int PAUSED_TEXT_COLOR = 0xFF000000;
 
+    private SubtickClock clock;
     private int windowLength; // The number of ticks to show in the render
     private int windowStartTick; // The most recent tick to show in the render
+    private String groupName = "";
 
-    public MeterRenderer(int windowLength) {
+    public MeterRenderer(SubtickClock clock, int windowLength) {
+        this.clock = clock;
         setWindowLength(windowLength);
         setWindowStartTick(0);
     }
@@ -61,6 +65,14 @@ public class MeterRenderer {
         return windowStartTick - windowLength/4;
     }
 
+    public String getGroupName() {
+        return groupName;
+    }
+
+    public void setGroupName(String groupName) {
+        this.groupName = groupName;
+    }
+
     public void renderMeterHighlights(Collection<Meter> meters, float partialTicks) {
         EntityPlayerSP player = Minecraft.getMinecraft().player;
         double dx = player.lastTickPosX + (player.posX - player.lastTickPosX) * partialTicks;
@@ -68,9 +80,16 @@ public class MeterRenderer {
         double dz = player.lastTickPosZ + (player.posZ - player.lastTickPosZ) * partialTicks;
 
         GlStateManager.enableBlend();
-        GlStateManager.tryBlendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
+        GlStateManager.tryBlendFuncSeparate(
+                GlStateManager.SourceFactor.SRC_ALPHA,
+                GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+                GlStateManager.SourceFactor.ONE,
+                GlStateManager.DestFactor.ZERO);
         GlStateManager.disableTexture2D();
         GlStateManager.depthMask(false);
+
+        GlStateManager.disableLighting();;
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240f, 240f);
 
         for (Meter m : meters) {
             if (player.dimension == m.getDimension()) {
@@ -80,16 +99,18 @@ public class MeterRenderer {
                 float g = (float) (color >> 8 & 255) / 255.0F;
                 float b = (float) (color & 255) / 255.0F;
 
-                AxisAlignedBB aabb = Block.FULL_BLOCK_AABB.offset(m.getPosition()).offset(-dx, -dy, -dz).grow(0.002);
+                AxisAlignedBB aabb = Block.FULL_BLOCK_AABB.offset(m.getDimPos().getPos()).offset(-dx, -dy, -dz).grow(0.002);
                 RenderGlobal.renderFilledBox(aabb, r, g, b, 0.5F);
                 if (m.isMovable()) {
                     RenderGlobal.drawBoundingBox(aabb.minX, aabb.minY, aabb.minZ,
                             aabb.maxX, aabb.maxY, aabb.maxZ,
-                            r, g, b, 1);
+                            r, g, b, 2);
                 }
             }
         }
 
+        GlStateManager.enableLighting();
+        
         GlStateManager.depthMask(true);
         GlStateManager.enableTexture2D();
         GlStateManager.disableBlend();
@@ -233,7 +254,7 @@ public class MeterRenderer {
 
     private void renderSubtick(int totalWidth, int totalHeight, List<Meter> meters, boolean paused) {
         int tick = getSelectedTick();
-        int numSubticks = SubtickClock.getClock().tickLength(tick);
+        int numSubticks = clock.tickLength(tick);
         if (numSubticks == 0 || !paused) {
             return;
         }
@@ -296,7 +317,7 @@ public class MeterRenderer {
             int bot = top + fr.FONT_HEIGHT;
 
             for (int t = windowStartTick - windowLength + 1; t <= windowStartTick; t++) {
-                SubtickTime stt = SubtickClock.getClock().firstTimeOfTick(t);
+                SubtickTime stt = clock.firstTimeOfTick(t);
 
                 Meter.StateChange mostRecentChange = m.mostRecentChange(stt);
                 if (mostRecentChange != null && mostRecentChange.getTime().getTick() == t-1) {
@@ -322,9 +343,11 @@ public class MeterRenderer {
 
     private void renderPauseNotification(int totalHeight, boolean paused) {
         FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
-        if (paused) {
-            fr.drawString(I18n.format("redstonemultimeter.ui.paused"), BORDER, totalHeight + 3, PAUSED_TEXT_COLOR);
+        String text = groupName;
+        if (paused){
+            text = text + " (" + I18n.format("redstonemultimeter.ui.paused") + ")";
         }
+        fr.drawString(text, BORDER, totalHeight + 3, PAUSED_TEXT_COLOR);
     }
 
 }

@@ -2,11 +2,7 @@ package narcolepticfrog.rsmm;
 
 import narcolepticfrog.rsmm.clock.SubtickClock;
 import narcolepticfrog.rsmm.clock.SubtickTime;
-import narcolepticfrog.rsmm.meterable.Meterable;
 import narcolepticfrog.rsmm.util.Trace;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 
 import java.util.function.Consumer;
 
@@ -14,41 +10,35 @@ public class Meter {
 
     public static final int MAX_STATE_CHANGES = 10000;
 
+    private SubtickClock clock;
+    private DimPos dimpos;
     private String name;
     private int color;
     private Trace<StateChange> stateChanges;
     private Trace<SubtickTime> moveTimes;
-    private World world;
-    private BlockPos position;
     private boolean movable;
 
-    public Meter(BlockPos position, World world, String name, int color, boolean movable) {
-        this.position = position;
-        this.world = world;
+    public Meter(SubtickClock clock, DimPos dimpos, String name, int color, boolean movable) {
+        this.clock = clock;
+        this.dimpos = dimpos;
         this.name = name;
         this.stateChanges = new Trace<>(MAX_STATE_CHANGES);
         this.moveTimes = new Trace<>(MAX_STATE_CHANGES);
         this.color = color;
         this.movable = movable;
-        checkForUpdate();
     }
 
     public boolean isMovable() {
         return movable;
     }
 
-    public void checkForUpdate() {
-        IBlockState state = world.getBlockState(position);
-        Meterable m = (Meterable) state.getBlock();
-        boolean isPowered = m.isPowered(state, world, position);
+    public void registerStateChange(SubtickTime time, boolean isPowered) {
+        stateChanges.push(new StateChange(time, isPowered));
+    }
 
-        boolean stateChanged = stateChanges.size() > 0 && stateChanges.get(0).getState() != isPowered;
-        stateChanged |= stateChanges.size() == 0 && isPowered;
-
-        if (stateChanged) {
-            SubtickTime time = SubtickClock.getClock().takeNextTime();
-            stateChanges.push(new StateChange(time, isPowered));
-        }
+    public void registerMove(SubtickTime time, DimPos newDimPos) {
+        this.dimpos = newDimPos;
+        this.moveTimes.push(time);
     }
 
     public StateChange getStateChange(SubtickTime time) {
@@ -92,7 +82,7 @@ public class Meter {
      * Returns true if the meter was powered when the given tick started.
      */
     public boolean wasPoweredAtStart(int tick) {
-        return wasPoweredAt(SubtickClock.getClock().lastTimeOfTick(tick-1));
+        return wasPoweredAt(clock.lastTimeOfTick(tick-1));
     }
 
     /**
@@ -102,8 +92,8 @@ public class Meter {
         if (!wasPoweredAtStart(tick)) {
             return false;
         }
-        int ix = stateChanges.binarySearch(SubtickClock.getClock().lastTimeOfTick(tick-1), StateChange::getTime);
-        return ix <= 0 || stateChanges.get(ix-1).getTime().compareTo(SubtickClock.getClock().lastTimeOfTick(tick)) > 0;
+        int ix = stateChanges.binarySearch(clock.lastTimeOfTick(tick-1), StateChange::getTime);
+        return ix <= 0 || stateChanges.get(ix-1).getTime().compareTo(clock.lastTimeOfTick(tick)) > 0;
     }
 
     /**
@@ -113,8 +103,8 @@ public class Meter {
         if (wasPoweredAtStart(tick)) {
             return true;
         }
-        SubtickTime start = SubtickClock.getClock().lastTimeOfTick(tick-1);
-        SubtickTime end = SubtickClock.getClock().lastTimeOfTick(tick);
+        SubtickTime start = clock.lastTimeOfTick(tick-1);
+        SubtickTime end = clock.lastTimeOfTick(tick);
         boolean[] powered = {false};
         forEachChange(start, end, sc -> powered[0] |= sc.getState());
         return powered[0];
@@ -146,7 +136,7 @@ public class Meter {
     }
 
     public boolean movedDuring(int tick) {
-        SubtickTime lastTime = SubtickClock.getClock().lastTimeOfTick(tick-1);
+        SubtickTime lastTime = clock.lastTimeOfTick(tick-1);
         int ix = moveTimes.binarySearch(lastTime, x -> x);
         if (ix <= 0) {
             return moveTimes.size() > 0 && moveTimes.get(moveTimes.size()-1).getTick() == tick;
@@ -162,13 +152,12 @@ public class Meter {
         this.color = color;
     }
 
-    public BlockPos getPosition() {
-        return position;
+    public DimPos getDimPos() {
+        return dimpos;
     }
 
-    public void setPosition(BlockPos position) {
-        this.moveTimes.push(SubtickClock.getClock().takeNextTime());
-        this.position = position;
+    public void setDimPos(DimPos dimpos) {
+        this.dimpos = dimpos;
     }
 
     public String getName() {
@@ -180,7 +169,7 @@ public class Meter {
     }
 
     public int getDimension() {
-        return world.provider.getDimensionType().getId();
+        return dimpos.getDim();
     }
 
     public static class StateChange {
