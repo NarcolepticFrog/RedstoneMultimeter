@@ -101,7 +101,7 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
 
     @Override
     public String getVersion() {
-        return "0.3";
+        return "0.4";
     }
 
     @Override
