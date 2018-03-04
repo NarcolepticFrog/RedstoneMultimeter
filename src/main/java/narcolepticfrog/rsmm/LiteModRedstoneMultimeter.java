@@ -6,6 +6,7 @@ import com.mumfrey.liteloader.client.ClientPluginChannelsClient;
 import com.mumfrey.liteloader.core.LiteLoader;
 import com.mumfrey.liteloader.core.PluginChannels;
 import narcolepticfrog.rsmm.clock.SubtickClock;
+import narcolepticfrog.rsmm.clock.SubtickTime;
 import narcolepticfrog.rsmm.network.*;
 import narcolepticfrog.rsmm.server.RSMMServer;
 import net.minecraft.client.Minecraft;
@@ -113,6 +114,7 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     public void handleMeter(RSMMCPacketMeter packet) {
         if (packet.shouldCreate()) {
             Meter m = new Meter(clock, packet.getDimpos(), packet.getName(), packet.getColor(), packet.isMovable());
+            m.registerStateChange(new SubtickTime(clock.getTick(), 0), packet.isPowered());
             meters.add(m);
         } else if (packet.shouldDelete()) {
             meters.remove(packet.getMeterId());
