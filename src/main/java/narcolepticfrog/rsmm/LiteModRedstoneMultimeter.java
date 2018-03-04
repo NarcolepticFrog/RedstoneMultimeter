@@ -13,7 +13,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.command.ServerCommandManager;
+import net.minecraft.network.INetHandler;
 import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.play.server.SPacketJoinGame;
 import net.minecraft.util.math.RayTraceResult;
 import org.lwjgl.input.Keyboard;
 
@@ -22,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, PostRenderListener, PreRenderListener,
-        ServerCommandProvider, PluginChannelListener, RSMMCPacketHandler {
+        ServerCommandProvider, PluginChannelListener, RSMMCPacketHandler, PreJoinGameListener {
 
     private static KeyBinding toggleMeterKey = new KeyBinding("key.redstonemultimeter.toggle", Keyboard.KEY_M, "key.categories.redstonemultimeter");
     private static KeyBinding pauseMetersKey = new KeyBinding("key.redstonemultimeter.pause", Keyboard.KEY_N, "key.categories.redstonemultimeter");
@@ -111,6 +113,12 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     }
 
     @Override
+    public boolean onPreJoinGame(INetHandler netHandler, SPacketJoinGame joinGamePacket) {
+        meters.clear();
+        return true;
+    }
+
+    @Override
     public void handleMeter(RSMMCPacketMeter packet) {
         if (packet.shouldCreate()) {
             Meter m = new Meter(clock, packet.getDimpos(), packet.getName(), packet.getColor(), packet.isMovable());
@@ -177,6 +185,5 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
 
     @Override
     public void onRenderTerrain(float partialTicks, int pass) { }
-
 
 }
