@@ -24,6 +24,12 @@ public class SubtickClock {
         return tick;
     }
 
+    public void clear() {
+        ticks.clear();
+        tickLengths.clear();
+        tick = -1;
+    }
+
     /**
      * Registers a new subtick time with the clock. If this time occurred during the current tick, then update
      * the length of this tick. Otherwise, it must have occurred after this tick, in which case we

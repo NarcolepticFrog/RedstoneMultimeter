@@ -118,6 +118,7 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     @Override
     public boolean onPreJoinGame(INetHandler netHandler, SPacketJoinGame joinGamePacket) {
         meters.clear();
+        clock.clear();
         return true;
     }
 
@@ -143,6 +144,7 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     @Override
     public void handleMeterGroup(RSMMCPacketMeterGroup packet) {
         meters.clear();
+        clock.clear();
         renderer.setGroupName(packet.getGroupName());
     }
 
