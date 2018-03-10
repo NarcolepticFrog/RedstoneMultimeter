@@ -9,7 +9,7 @@ import java.util.BitSet;
 
 public class RSMMCPacketMeter extends RSMMCPacket {
 
-    public static final byte MESSAGE_ID = 1;
+    public static final byte MESSAGE_ID = 0;
 
     private BitSet fields;
     private static final int METER_ID = 0;

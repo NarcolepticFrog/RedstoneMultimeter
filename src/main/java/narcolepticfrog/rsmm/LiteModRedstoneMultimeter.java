@@ -36,6 +36,7 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     private RSMMServer rsmmServer = new RSMMServer();
     private boolean metersPaused = false;
     private ArrayList<Meter> meters = new ArrayList<>();
+    private long currentTick;
 
     public LiteModRedstoneMultimeter() {
     }
@@ -46,6 +47,9 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
 
     @Override
     public void onTick(Minecraft minecraft, float partialTicks, boolean inGame, boolean clock) {
+        if (minecraft.world != null) {
+            currentTick = minecraft.world.getTotalWorldTime();
+        }
         if (toggleMeterKey.isPressed()) {
             RayTraceResult r = minecraft.objectMouseOver;
             if (r.typeOfHit == RayTraceResult.Type.BLOCK) {
@@ -75,9 +79,8 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     @Override
     public void onPostRenderHUD(int screenWidth, int screenHeight) {
         if (!metersPaused) {
-            int currentTick = clock.getTick();
-            int delta = currentTick - renderer.getWindowStartTick();
-            int windowStartTick = (int)(renderer.getWindowStartTick() + 0.3*delta) + 1;
+            long delta = currentTick - renderer.getWindowStartTick();
+            long windowStartTick = (int)(renderer.getWindowStartTick() + 0.3*delta) + 1;
             windowStartTick = Math.min(windowStartTick, currentTick);
             renderer.setWindowStartTick(windowStartTick);
         }
@@ -133,6 +136,7 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
             if (packet.hasColor()) m.setColor(packet.getColor());
             if (packet.hasDimPos()) m.registerMove(packet.getTime(), packet.getDimpos());
             if (packet.hasPowered()) m.registerStateChange(packet.getTime(), packet.isPowered());
+            clock.registerTime(packet.getTime());
         }
     }
 
@@ -140,11 +144,6 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     public void handleMeterGroup(RSMMCPacketMeterGroup packet) {
         meters.clear();
         renderer.setGroupName(packet.getGroupName());
-    }
-
-    @Override
-    public void handleClock(RSMMCPacketClock packet) {
-        clock.onTickStart(packet.getTick(), packet.getLastTickLength());
     }
 
     @Override

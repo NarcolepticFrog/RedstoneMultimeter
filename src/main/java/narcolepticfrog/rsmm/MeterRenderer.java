@@ -36,7 +36,7 @@ public class MeterRenderer {
 
     private SubtickClock clock;
     private int windowLength; // The number of ticks to show in the render
-    private int windowStartTick; // The most recent tick to show in the render
+    private long windowStartTick; // The most recent tick to show in the render
     private String groupName = "";
 
     public MeterRenderer(SubtickClock clock, int windowLength) {
@@ -53,15 +53,15 @@ public class MeterRenderer {
         return windowLength;
     }
 
-    public void setWindowStartTick(int windowStartTick) {
+    public void setWindowStartTick(long windowStartTick) {
         this.windowStartTick = windowStartTick;
     }
 
-    public int getWindowStartTick() {
+    public long getWindowStartTick() {
         return windowStartTick;
     }
 
-    public int getSelectedTick() {
+    public long getSelectedTick() {
         return windowStartTick - windowLength/4;
     }
 
@@ -198,9 +198,9 @@ public class MeterRenderer {
             int top = BORDER + i*fr.FONT_HEIGHT + ((i != 0) ? i*ROW_GAP : 0);
             int bot = top + fr.FONT_HEIGHT;
 
-            for (int t = windowStartTick; t > windowStartTick - windowLength; t--) {
-                int left = totalWidth - BORDER - (windowStartTick - t + 1)*TICK_WIDTH;
-                int right = totalWidth - BORDER - (windowStartTick - t)*TICK_WIDTH;
+            for (long t = windowStartTick; t > windowStartTick - windowLength; t--) {
+                int left = (int)(totalWidth - BORDER - (windowStartTick - t + 1)*TICK_WIDTH);
+                int right = (int)(totalWidth - BORDER - (windowStartTick - t)*TICK_WIDTH);
 
                 if (m.wasPoweredEntireTick(t)) {
                     Gui.drawRect(left, top, right, bot, m.getColor());
@@ -240,9 +240,9 @@ public class MeterRenderer {
     }
 
     private void renderSelectedTickMarker(int totalWidth, int totalHeight) {
-        int t = getSelectedTick();
-        int left = totalWidth - BORDER - (windowStartTick - t)*TICK_WIDTH;
-        int right = totalWidth - BORDER - (windowStartTick - t + 1)*TICK_WIDTH;
+        long t = getSelectedTick();
+        int left = (int)(totalWidth - BORDER - (windowStartTick - t)*TICK_WIDTH);
+        int right = (int)(totalWidth - BORDER - (windowStartTick - t + 1)*TICK_WIDTH);
         int top = 0;
         int bottom = totalHeight;
 
@@ -253,7 +253,7 @@ public class MeterRenderer {
     }
 
     private void renderSubtick(int totalWidth, int totalHeight, List<Meter> meters, boolean paused) {
-        int tick = getSelectedTick();
+        long tick = getSelectedTick();
         int numSubticks = clock.tickLength(tick);
         if (numSubticks == 0 || !paused) {
             return;
@@ -316,14 +316,14 @@ public class MeterRenderer {
             int top = BORDER + i * fr.FONT_HEIGHT + ((i != 0) ? i * ROW_GAP : 0);
             int bot = top + fr.FONT_HEIGHT;
 
-            for (int t = windowStartTick - windowLength + 1; t <= windowStartTick; t++) {
+            for (long t = windowStartTick - windowLength + 1; t <= windowStartTick; t++) {
                 SubtickTime stt = clock.firstTimeOfTick(t);
 
                 Meter.StateChange mostRecentChange = m.mostRecentChange(stt);
                 if (mostRecentChange != null && mostRecentChange.getTime().getTick() == t-1) {
-                    int duration = m.stateDuration(stt);
+                    long duration = m.stateDuration(stt);
                     if (duration > 5) {
-                        int left = totalWidth - BORDER - (windowStartTick - t + 1) * TICK_WIDTH + 1;
+                        int left = (int)(totalWidth - BORDER - (windowStartTick - t + 1) * TICK_WIDTH + 1);
                         String durationStr = "" + duration;
                         int width = fr.getStringWidth(durationStr) + 1;
 

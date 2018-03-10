@@ -57,13 +57,13 @@ public class Meter {
         return stateChanges.get(ix);
     }
 
-    public int stateDuration(SubtickTime t) {
+    public long stateDuration(SubtickTime t) {
         int ix = stateChanges.binarySearch(t, StateChange::getTime);
         if (ix <= 0) {
             return -1;
         }
-        int startTick = stateChanges.get(ix).getTime().getTick();
-        int endTick = stateChanges.get(ix-1).getTime().getTick();
+        long startTick = stateChanges.get(ix).getTime().getTick();
+        long endTick = stateChanges.get(ix-1).getTime().getTick();
         return endTick - startTick;
     }
 
@@ -81,14 +81,14 @@ public class Meter {
     /**
      * Returns true if the meter was powered when the given tick started.
      */
-    public boolean wasPoweredAtStart(int tick) {
+    public boolean wasPoweredAtStart(long tick) {
         return wasPoweredAt(clock.lastTimeOfTick(tick-1));
     }
 
     /**
      * Returns true if the meter was powered before the start of this tick, and had no state changes during the tick.
      */
-    public boolean wasPoweredEntireTick(int tick) {
+    public boolean wasPoweredEntireTick(long tick) {
         if (!wasPoweredAtStart(tick)) {
             return false;
         }
@@ -99,7 +99,7 @@ public class Meter {
     /**
      * Returns true if the meter was powered for any SubtickTime during the given tick.
      */
-    public boolean wasPoweredDuring(int tick) {
+    public boolean wasPoweredDuring(long tick) {
         if (wasPoweredAtStart(tick)) {
             return true;
         }
@@ -135,7 +135,7 @@ public class Meter {
         return moveTimes.get(ix).equals(t);
     }
 
-    public boolean movedDuring(int tick) {
+    public boolean movedDuring(long tick) {
         SubtickTime lastTime = clock.lastTimeOfTick(tick-1);
         int ix = moveTimes.binarySearch(lastTime, x -> x);
         if (ix <= 0) {

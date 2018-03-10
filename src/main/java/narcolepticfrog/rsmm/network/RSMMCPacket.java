@@ -16,9 +16,6 @@ public abstract class RSMMCPacket {
 
         switch(messageId) {
 
-            case RSMMCPacketClock.MESSAGE_ID:
-                return RSMMCPacketClock.fromBuffer(buffer);
-
             case RSMMCPacketMeter.MESSAGE_ID:
                 return RSMMCPacketMeter.fromBuffer(buffer);
 

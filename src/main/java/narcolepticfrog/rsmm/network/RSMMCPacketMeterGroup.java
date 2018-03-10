@@ -5,7 +5,7 @@ import net.minecraft.network.PacketBuffer;
 
 public class RSMMCPacketMeterGroup extends RSMMCPacket {
 
-    public static final byte MESSAGE_ID = 2;
+    public static final byte MESSAGE_ID = 1;
 
      private String groupName;
 

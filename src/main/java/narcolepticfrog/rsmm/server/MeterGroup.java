@@ -122,7 +122,7 @@ public class MeterGroup implements RSMMSPacketHandler {
     /**
      * The current tick.
      */
-    private int currentTick = -1;
+    private long currentTick = -1;
 
     /**
      * The current subtickIndex. This is incremented each time a recorded event occurs.
@@ -139,10 +139,8 @@ public class MeterGroup implements RSMMSPacketHandler {
     /**
      * Should be called at the start of each tick. Broadcasts a Clock packet to all subscribed players.
      */
-    public void onTickStart(int tick) {
-        RSMMCPacketClock packet = new RSMMCPacketClock(tick, subtickIndex);
-        broadcastToSubscribers(packet);
-        currentTick = tick;
+    public void onTickStart(long tick) {
+        currentTick = server.getMinecraftServer().getWorld(0).getTotalWorldTime();
         subtickIndex = 0;
     }
 
