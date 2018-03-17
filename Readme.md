@@ -14,7 +14,7 @@ Download the most recent version of the mod from [here](https://github.com/Narco
 
 ## Multiplayer Support
 
-As of version 0.4, the Redstone Multiplayer mod has multiplayer support, enabling you to debug and experiment with friends! The necessary server-side modifications are included in the latest version of carpet mod. You can get the latest "snapshoty" version of carpet mod from the `public-info` channel on the SciCraft discord channel (https://discord.gg/4qaMFUN). To enable the redstone multimeter mod support in carpet, you will need to set the carpet rule `redstoneMultimeter` to `true` (e.g., by executing `/carpet redstoneMultimeter true`). See the Meter Groups section for more information about organizing meters in multiplayer.
+As of version 0.4, the Redstone Multiplayer mod has multiplayer support, enabling you to debug and experiment with friends! The necessary server-side modifications are included in the latest version of carpet mod. You can get the latest "snapshotty" version of carpet mod from the `#mods` channel on the SciCraft discord channel (https://discord.gg/4qaMFUN). To enable the redstone multimeter mod support in carpet, you will need to set the carpet rule `redstoneMultimeter` to `true` (e.g., by executing `/carpet redstoneMultimeter true`). See the Meter Groups section for more information about organizing meters in multiplayer.
 
 ## The User Interface
 
