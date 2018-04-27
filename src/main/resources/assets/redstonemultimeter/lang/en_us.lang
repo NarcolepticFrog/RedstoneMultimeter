@@ -7,6 +7,7 @@ key.redstonemultimeter.toggle=Toggle Meter
 key.redstonemultimeter.pause=Pause Meters
 key.redstonemultimeter.forward=Step Forward
 key.redstonemultimeter.back=Step Backward
+key.redstonemultimeter.toggledisplay=Toggle Overlay
 # Commands
 redstonemultimeter.command.meter.usage=/meter name [idx] <name> OR /meter color [idx] <color> OR /meter removeAll OR /meter group <groupName> OR /meter listGroups
 redstonemultimeter.command.meter.rename.last=Renamed meter to %s.

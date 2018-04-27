@@ -30,11 +30,13 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     private static KeyBinding pauseMetersKey = new KeyBinding("key.redstonemultimeter.pause", Keyboard.KEY_N, "key.categories.redstonemultimeter");
     private static KeyBinding stepForwardKey = new KeyBinding("key.redstonemultimeter.forward", Keyboard.KEY_PERIOD, "key.categories.redstonemultimeter");
     private static KeyBinding stepBackwardKey = new KeyBinding("key.redstonemultimeter.back", Keyboard.KEY_COMMA, "key.categories.redstonemultimeter");
+    private static KeyBinding toggleOverlayKey = new KeyBinding("key.redstonemultimeter.toggledisplay", Keyboard.KEY_H, "key.categories.redstonemultimeter");
 
     private SubtickClock clock = new SubtickClock();
     private MeterRenderer renderer = new MeterRenderer(clock, 60);
     private RSMMServer rsmmServer = new RSMMServer();
     private boolean metersPaused = false;
+    private boolean renderMeterOverlay = true;
     private ArrayList<Meter> meters = new ArrayList<>();
     private long currentTick;
 
@@ -63,6 +65,9 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
         if (pauseMetersKey.isPressed()) {
             metersPaused = !metersPaused;
         }
+        if (toggleOverlayKey.isPressed()) {
+            renderMeterOverlay = !renderMeterOverlay;
+        }
 
         if (metersPaused) {
             boolean ctrlPressed = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL);
@@ -84,7 +89,9 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
             windowStartTick = Math.min(windowStartTick, currentTick);
             renderer.setWindowStartTick(windowStartTick);
         }
-        renderer.renderMeterTraces(meters, metersPaused);
+        if (renderMeterOverlay) {
+            renderer.renderMeterTraces(meters, metersPaused);
+        }
     }
 
     @Override
@@ -98,6 +105,7 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
         LiteLoader.getInput().registerKeyBinding(pauseMetersKey);
         LiteLoader.getInput().registerKeyBinding(stepBackwardKey);
         LiteLoader.getInput().registerKeyBinding(stepForwardKey);
+        LiteLoader.getInput().registerKeyBinding(toggleOverlayKey);
     }
 
     @Override
