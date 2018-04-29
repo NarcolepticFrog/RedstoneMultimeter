@@ -66,14 +66,14 @@ public class SubtickClock {
      * Returns the first subtick time within the tick.
      */
     public synchronized SubtickTime firstTimeOfTick(long tick) {
-        return new SubtickTime(tick, 0);
+        return new SubtickTime(tick, 0, SubtickTime.TickPhase.PLAYERS);
     }
 
     /**
      * Returns the last taken subtick time within the tick.
      */
     public synchronized SubtickTime lastTimeOfTick(long tick) {
-        return new SubtickTime(tick, tickLength(tick) - 1);
+        return new SubtickTime(tick, tickLength(tick) - 1, SubtickTime.TickPhase.TILE_ENTITIES);
     }
 
 }

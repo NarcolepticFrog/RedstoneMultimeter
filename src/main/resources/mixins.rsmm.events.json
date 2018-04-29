@@ -9,6 +9,7 @@
     "MixinMinecraftServer",
     "MixinNetHandlerPlayServer",
     "MixinPlayerList",
-    "MixinWorld"
+    "MixinWorld",
+    "MixinWorldServer"
   ]
 }

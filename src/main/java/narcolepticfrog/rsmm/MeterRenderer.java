@@ -270,10 +270,13 @@ public class MeterRenderer {
 
             for (int subtick = 0; subtick < numSubticks; subtick++) {
                 SubtickTime time = new SubtickTime(tick, subtick);
-
                 Meter.StateChange stateChange = m.getStateChange(time);
+                if (stateChange != null) {
+                    time = stateChange.getTime(); // This is different than the one constructed since it has the phase.
+                }
+
                 int left = totalWidth + SUBTICK_GAP + subtick*TICK_WIDTH;
-                int right = totalWidth + SUBTICK_GAP + (subtick + 1)*TICK_WIDTH;
+                int right = left + TICK_WIDTH;
 
                 if (stateChange == null) {
                     if (m.wasPoweredAt(time)) {
@@ -286,6 +289,14 @@ public class MeterRenderer {
                     Gui.drawRect(left+2, top+1, right-1, bot-1, BACKGROUND_COLOR);
                 }
 
+                // TODO: Do something better than this rendering code.
+                //                       player      tile_ticks  rand_ticks  BEs         entities    tile entities
+                int[] colors = new int[]{0xFF000000, 0xFFFF0000, 0xFF00FF00, 0xFF0000FF, 0xFFFF00FF, 0xFF00FFFF};
+                Gui.drawRect(left, top, left+1, bot, colors[time.getPhase().ordinal()]);
+                Gui.drawRect(right, top, right+1, bot, colors[time.getPhase().ordinal()]);
+                Gui.drawRect(left, top-1, right+1, top, colors[time.getPhase().ordinal()]);
+                Gui.drawRect(left, bot, right+1, bot+1, colors[time.getPhase().ordinal()]);
+
                 if (m.movedAtTime(time)) {
                     int height = (top+bot)/2;
                     Gui.drawRect(left, height-1, right, height, m.getColor());
@@ -296,17 +307,17 @@ public class MeterRenderer {
 
         }
 
-        // Draw horizontal lines
-        for (int i = 0; i <= meters.size(); i++) {
-            int y = i*fr.FONT_HEIGHT + ((i != 0) ? i * ROW_GAP : 0);
-            Gui.drawRect(totalWidth+SUBTICK_GAP, y,
-                    totalWidth+SUBTICK_GAP+numSubticks*TICK_WIDTH, y+1, MINOR_GRID_COLOR);
-        }
-        // Draw vertical lines
-        for (int t = 0; t <= numSubticks; t++) {
-            int x = totalWidth + SUBTICK_GAP + t*TICK_WIDTH;
-            Gui.drawRect(x, 0, x+1, totalHeight, MINOR_GRID_COLOR);
-        }
+//        // Draw horizontal lines
+//        for (int i = 0; i <= meters.size(); i++) {
+//            int y = i*fr.FONT_HEIGHT + ((i != 0) ? i * ROW_GAP : 0);
+//            Gui.drawRect(totalWidth+SUBTICK_GAP, y,
+//                    totalWidth+SUBTICK_GAP+numSubticks*TICK_WIDTH, y+1, MINOR_GRID_COLOR);
+//        }
+//        // Draw vertical lines
+//        for (int t = 0; t <= numSubticks; t++) {
+//            int x = totalWidth + SUBTICK_GAP + t*TICK_WIDTH;
+//            Gui.drawRect(x, 0, x+1, totalHeight, MINOR_GRID_COLOR);
+//        }
     }
 
     private void renderPulseDurations(int totalWidth, boolean paused, List<Meter> meters) {

@@ -129,11 +129,17 @@ public class MeterGroup implements RSMMSPacketHandler {
      */
     private int subtickIndex = 0;
 
+    private SubtickTime.TickPhase currentTickPhase;
+
+    public void setCurrentTickPhase(SubtickTime.TickPhase phase) {
+        this.currentTickPhase = phase;
+    }
+
     /**
      * Returns the next {@code SubtickTime} for the current meter group.
      */
     private SubtickTime takeNextTime() {
-        return new SubtickTime(currentTick, subtickIndex++);
+        return new SubtickTime(currentTick, subtickIndex++, currentTickPhase);
     }
 
     /**
@@ -142,6 +148,10 @@ public class MeterGroup implements RSMMSPacketHandler {
     public void onTickStart(long tick) {
         currentTick = server.getMinecraftServer().getWorld(0).getTotalWorldTime();
         subtickIndex = 0;
+    }
+
+    public void onTickPhase(SubtickTime.TickPhase phase) {
+        setCurrentTickPhase(phase);
     }
 
     /**
@@ -203,7 +213,6 @@ public class MeterGroup implements RSMMSPacketHandler {
             if (powered != meter.powered) {
                 meter.powered = powered;
                 SubtickTime time = takeNextTime();
-
                 RSMMCPacketMeter packet = new RSMMCPacketMeter();
                 packet.setMeterId(meterId);
                 packet.setTime(time);

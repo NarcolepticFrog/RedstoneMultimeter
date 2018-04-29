@@ -17,6 +17,7 @@ import net.minecraft.network.INetHandler;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.server.SPacketJoinGame;
 import net.minecraft.util.math.RayTraceResult;
+import net.minecraft.util.text.TextComponentString;
 import org.lwjgl.input.Keyboard;
 
 import java.io.File;
@@ -134,7 +135,7 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
     public void handleMeter(RSMMCPacketMeter packet) {
         if (packet.shouldCreate()) {
             Meter m = new Meter(clock, packet.getDimpos(), packet.getName(), packet.getColor(), packet.isMovable());
-            m.registerStateChange(new SubtickTime(clock.getTick(), 0), packet.isPowered());
+            m.registerStateChange(new SubtickTime(clock.getTick()), packet.isPowered());
             meters.add(m);
         } else if (packet.shouldDelete()) {
             meters.remove(packet.getMeterId());
@@ -146,6 +147,8 @@ public class LiteModRedstoneMultimeter implements Tickable, HUDRenderListener, P
             if (packet.hasDimPos()) m.registerMove(packet.getTime(), packet.getDimpos());
             if (packet.hasPowered()) m.registerStateChange(packet.getTime(), packet.isPowered());
             clock.registerTime(packet.getTime());
+            // Temporary. Once rendering is improved, I will remove this. TODO: Remove
+            Minecraft.getMinecraft().ingameGUI.getChatGUI().printChatMessage(new TextComponentString(packet.getTime().getPhase().toString()));
         }
     }
 
