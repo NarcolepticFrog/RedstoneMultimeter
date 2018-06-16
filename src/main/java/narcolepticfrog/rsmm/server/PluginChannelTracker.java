@@ -1,6 +1,5 @@
 package narcolepticfrog.rsmm.server;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import narcolepticfrog.rsmm.events.PlayerConnectionEventDispatcher;
@@ -8,8 +7,9 @@ import narcolepticfrog.rsmm.events.PlayerConnectionListener;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 
-import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class PluginChannelTracker implements PlayerConnectionListener {
 
@@ -36,7 +36,7 @@ public class PluginChannelTracker implements PlayerConnectionListener {
      * Returns the collection of channels {@code player} is registered to.
      */
 
-    public Collection<String> getChannels(EntityPlayerMP player) {
+    public Set<String> getChannels(EntityPlayerMP player) {
         return uuid2channels.get(player.getUniqueID());
     }
 
@@ -51,9 +51,10 @@ public class PluginChannelTracker implements PlayerConnectionListener {
      * Returns the collection of players registered to {@code channel}. The {@code server} is used to look players up
      * by their UUID.
      */
-    public Collection<EntityPlayerMP> getPlayers(MinecraftServer server, String channel) {
-        return Collections2.transform(channel2uuids.get(channel),
-                (UUID uuid) -> (EntityPlayerMP) server.getEntityFromUuid(uuid) );
+    public Set<EntityPlayerMP> getPlayers(MinecraftServer server, String channel) {
+        return channel2uuids.get(channel).stream()
+                .map((UUID uuid) -> (EntityPlayerMP) server.getEntityFromUuid(uuid))
+                .collect(Collectors.toSet());
     }
 
     /**
