@@ -3,7 +3,7 @@ package narcolepticfrog.rsmm.events.mixins;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import narcolepticfrog.rsmm.events.ServerPacketEventDispatcher;
-import narcolepticfrog.rsmm.server.HasClientChannels;
+import narcolepticfrog.rsmm.server.PluginChannelTracker;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.network.NetHandlerPlayServer;
 import net.minecraft.network.PacketBuffer;
@@ -25,7 +25,6 @@ public abstract class MixinNetHandlerPlayServer {
     private final static String REGISTER_CHANNELS = "REGISTER";
     private final static String UNREGISTER_CHANNELS = "UNREGISTER";
 
-
     private static List<String> getChannels(PacketBuffer buff) {
         byte[] bytes = new byte[buff.readableBytes()];
         buff.readBytes(bytes);
@@ -41,17 +40,16 @@ public abstract class MixinNetHandlerPlayServer {
         data.resetReaderIndex();
 
         data.resetReaderIndex();
-        HasClientChannels client = (HasClientChannels)this.player;
         if (channelName.equals(REGISTER_CHANNELS)) {
             List<String> channels = getChannels(data);
             for (String channel : channels) {
-                client.addClientChannel(channel);
+                PluginChannelTracker.getChannelTracker().register(player, channel);
             }
             ServerPacketEventDispatcher.dispatchChannelRegister(player, channels);
         } else if (channelName.equals(UNREGISTER_CHANNELS)) {
             List<String> channels = getChannels(data);
             for (String channel : channels) {
-                client.removeClientChannel(channel);
+                PluginChannelTracker.getChannelTracker().unregister(player, channel);
             }
             ServerPacketEventDispatcher.dispatchChannelUnregister(player, channels);
         } else {

@@ -98,8 +98,7 @@ public class RSMMServer implements StateChangeListener, PistonPushListener, Tick
      * @param packet The packet to be sent.
      */
     public void sendToPlayer(EntityPlayerMP player, RSMMCPacket packet) {
-        HasClientChannels clientChannels = (HasClientChannels)player;
-        if (clientChannels.getClientChannels().contains("RSMM")) {
+        if (PluginChannelTracker.getChannelTracker().isRegistered(player, "RSMM")) {
             player.connection.sendPacket(new SPacketCustomPayload("RSMM", packet.toBuffer()));
         }
     }
